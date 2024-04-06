@@ -1,0 +1,238 @@
+# -------------------------------------------------------------------------------
+#                      DECOUPLING SIMULATION - INPUT FILE
+# -------------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------
+#                      TYPE OF SIMULATION 
+# --------------------------------------------------------------
+
+
+# only one simulation of each type can be done each run
+
+# simulate magnetization pulse seq of spin 2
+# simulate magnetization pulse acq of spin 2
+# simulate magnetization pulse hom of spin 1
+
+
+# simulate FID Sequence, weak
+# simulate FID Sequence, strong
+
+# simulate FID Sequence bilevel, weak, 2
+# simulate FID Sequence bilevel, strong, 2
+
+# simulate FID Sequence, Hetero Decoupling, weak
+# simulate FID Sequence, Hetero Decoupling, strong
+# simulate FID Sequence, Hetero Decoupling bilevel, weak 2
+# simulate FID Sequence, Hetero Decoupling bilevel, strong 2
+
+simulate FID Hetero Decoupling, weak, reduced
+# simulate FID Hetero Decoupling, weak
+# simulate FID Hetero Decoupling, strong
+
+# simulate FID Hetero Decoupling bilevel, weak, reduced, 2
+# simulate FID Hetero Decoupling bilevel, weak, 2
+# simulate FID Hetero Decoupling bilevel, strong, 4
+
+# simulate FID 10 spins, weak
+# simulate FID 10 spins, strong
+
+# simulate FID Homo Decoupling, weak
+# simulate FID Homo Decoupling, strong
+
+# simulate FID Homo Decoupling, Hetero Decoupling, weak
+# simulate FID Homo Decoupling, Hetero Decoupling, strong
+
+# simulate FID gradients, weak,
+# simulate FID gradients, strong
+
+# xi 80
+
+
+# simulate sidebands Hetero Decoupling, weak, reduced
+# simulate sidebands Hetero Decoupling, bilevel, weak, reduced, 2
+
+
+
+# simulate average H
+# simulate repeated pulse average H
+# sum H
+
+
+
+# simulate Waugh simple pulse seq of spin 2
+# simulate Waugh simple pulse acq of spin 2
+# simulate Waugh simple pulse hom of spin 1
+# Waugh exact
+
+
+# --------------------------------------------------------------
+#                     SIMULATION PARAMETERS
+# --------------------------------------------------------------
+
+nspins = 2                          # number of spins
+fidspin = 1                         # spin of which FID is taken
+offsetspins = 2                     # spins whose offset is varied to get the offset dependent decoupling profile
+pulsespins = 2                      # spins at which pulse is applied, for each has to be given a seperate pulse file
+J = 142.3                            # coupling strength between two spins in Hz
+# dwell = 0.0002                      # dwell time in s
+dwell = 0.000052
+# T2_time = 0.2                       # T2-time of spins in s
+T2_time = 0.0388
+npoints = 4096                      # number of points of the FID
+nB1 = 1                             # number of B1 fields for calculation
+theta = 30                          # +/- theta in percent, for B1 inhomogeneity and for average hamiltonian
+noffs = 101                         # number of calculated offsets
+offsrange = -50000, 50000           # offset range, in which offsets are calculated, in Hz
+
+
+
+
+#---------------------------------------------------------------
+#                    SETUP OF PULSE SEQUENCE
+#---------------------------------------------------------------
+
+
+# ------------ PULSE PARAMETERS ------------
+rfmaxseq = 10000 10000                       # maximum of rf-amplitude, in Hz, of pulses applied before FID is acquired
+rfmaxacq = 10000 1723.743006                     # maximum of rf-amplitude, in Hz, of pulses during acquisition (heteronuclear decoupling)
+rfmaxhom = 234 234                       # maximum of rf-amplitude, in Hz, of pulses for homonuclear decoupling
+tpulseseq = 0.025                       # duration of pulse in ms, of pulses applied before FID is acquired
+tpulseacq = 0.05 2                       # duration of pulse in ms, of pulses during acquisition (heteronuclear decoupling)
+tpulsehom = 10 10                       # duration of pulse in ms, of pulses for homonuclear decoupling
+
+pdigits = 1000 1000                        # digits of pulse, necessary for WURST, STUD
+bwdth spin 2 = 50000                       # bandwidth for STUD pulse
+n (WURST) spin 2 = 40                      # for WURST pulse
+k (WURST) spin 2 = 35000000                # for WURST pulse, sweep rate in Hz s^-1  (good parameters for WURST: k=35 MHzs-1, tpulse=2ms, rfmax=3670)
+# k (WURST) spin 2 = 7000000                # for WURST pulse, sweep rate in Hz s^-1  (good parameters for WURST: k=35 MHzs-1, tpulse=2ms, rfmax=3670)
+
+# weird 11 kHz WURST: Xi = 49 at k = 7000000
+
+# ------------ AVERAGE HAMILTONIAN ------------
+thresh = 4                          # maximum angle in degree, which pulse is allowed to do in one step of average hamiltonian calculation
+
+
+# ------------ HOMONUCLEAR DECOUPLING ------------
+dchunk = 1                        # will be devided by J ---> dchunk = 0.5 equals dchunk = 1/(2*J)
+
+
+# ------------ WAUGH CRITERION ------------
+eps = 1.0                           # epsilon used to calculate the slope of lambda, necessary for the simple waugh criterion, in Hz
+
+
+
+# ------------ USING PULSE FROM BRUKER FILE -------------
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Gaus1_90.1000.bruker                    # tpulse=1 ms, rfmax=607
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/G3.1000.bruker                          # tpulse=1 ms, rfmax=3589
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Gaus1_180i.1000.bruker.
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Gaus1.1000.bruker
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Burbop-180.1.bruker                      # tpulse=2 ms, rfmax=5608
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Reburp.1000.bruker                       # tpulse=1 ms, rfmax=6139
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob.1000.bruker                        # tpulse=1 ms, rfmax=2340
+# filename spin 1 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_Lisa.bruker                        # tpulse=10 ms, rfmax=234
+# filename spin 1 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_shifted.xyzgt                      # tpulse=10 ms, rfmax=234
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_shifted.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_shifted_ACQnone.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BUSS.bruker                              # tpulse=123.2 ms, rfmax=14000
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BUSS.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BUSS.xyzgt C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BUSS.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/cw.bruker
+# filename spin 1 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/cw.bruker
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/seq_90y_acq_BUSS.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/seq_90y_acq_180x.xyzgt
+# filename spin 1 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/seq_90y.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/acq_180x.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/90x-240y-90x.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/90x-180-x-270x.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/90x-180y-90x.xyzgt
+# filename spin 1 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/seq_90y.xyzgt C:/Users/Lisa/Documents/KIT/WS202324/Pulse/seq_90y.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/cw-acq.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/cw-acq-grad.xyzgt
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/none.bruker  
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/caWURST-2.bruker
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/hard180_3dig.bruker                       # tpulse=0.05ms, rfmax=10000
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/hard180_1000dig.bruker                    # tpulse=1ms, rfmax=10000
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/sine.bruker
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/SmCrp_BW50_RF9403_720u.bruker             # tpulse=720 us, rfmax=9403
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N1.bruker          # tpulse=128ms, rfmax=7000
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N1_1.bruker       # tpulse=128ms, rfmax=7500
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N1_64m_1.bruker   # tpulse=128ms, rfmax=7500
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N2_1.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N2_2.bruker      # tpulse=128ms, rfmax=7500  
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_1.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_2.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_3.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_4.bruker      # tpulse=128ms, rfmax=7500 
+# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_64m_1.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_64m_2.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_64m_3.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_64m_4.bruker  # tpulse=128ms, rfmax=7500 
+
+
+
+# ------------ CREATE OTHER PULSES ------------
+# implemented pulse for supercycles: GARP, WALTZ4, WALTZ8, WALTZ16, MLEV, DIPSI1, DIPSI2, DIPSI3, SUSAN, STUD, WURST, F1, F2, ..., F10
+pulsetype spin 2 = WURST
+
+
+
+# ------------ SUPERCYCLES ------------
+# implemented supercycles so far: MLEV4, MLEV8, MLEV16, MLEV64, WALTZ4, WALTZ8, WALTZ16, P5, P7, P9
+# first named supercycle is the outer supercycle
+supercycle spin 2 = MLEV8
+
+
+# --------------------------------------------------------------
+#                    STARTING MAGNETIZATION
+# --------------------------------------------------------------
+
+rhoinit = x                         # starting magnetization, can be x, y or z
+# rhoinit = z
+
+
+# --------------------------------------------------------------
+#                SIMULATE AVERAGE HAMILTONIAN
+# --------------------------------------------------------------
+
+haminit = z                         # starting hamiltonian, can be x, y or z
+centered inversion = false
+
+
+# --------------------------------------------------------------
+#         DETERMINE BIGGEST SIDEBAND AND FIT TO AX^2*B
+# --------------------------------------------------------------
+
+allJs = 50 75 100 125 150 175 200 225 250    # coupling strength in Hz used for calculation of sidebands dependent on J
+# allJs = 50 100 150 200 250 300 350 400 450 500 
+# allJs = 100 150
+
+
+
+# --------------------------------------------------------------
+#            SIMULATION PARAMETERS FOR 2 - 10 SPINS
+# --------------------------------------------------------------
+
+# NOT WORKING CURRENTLY
+
+# chemical shift of each spin in Hz
+# cs = 0 0 0 0 0 0 0 0 0 0
+# cs = -450 10 10 450 450 450 0 0 0 0
+# scalar cooupling in Hz between two spins, is 10x10 matrix
+# sc = 0 145 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0
+# sc = 0 1 1 0 0 0 0 0 0 0; 0 0 0 7 7 7 0 0 0 0; 0 0 0 7 7 7 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0
+# dipolar cooupling in Hz between two spins, is 10x10 matrix
+# dc = 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 0 0
+
+# spingroups = 6                      # amount of grouped spins in each spingroup (e.g. 1 time I-spin, 1 time S-spin --> 1, 1)
+# pulsespingroup = 1                  # spingroups affected by the pulse
+# fidspingroup = 1                    # spingroup which is simulated in the fid
+
+
+# --------------------------------------------------------------
+#                          GRADIENTS
+# --------------------------------------------------------------
+
+# NOT FULLY IMPLEMENTED YET
+
+# gradstrength = 0.05                  # strength of gradient in T/M (this one is weaker than normal, normal 0.5 T/M)
+ngrads = 5                          # amount of gradient slices of the NMR tube used for the simulation
+# dgrad = 5                           # duration of the gradient in ms
+# gradphase = 1                       # gradient -1 is opposite to gradient 1
+tubesize = 0.02                     # tubesize in m, e.g. 0.02 m
+gammaH = 4                          # gyromagnetic ratio of nucleus (compared to 1H?)
+# alignment = centered                # alignment of gradient and pulse
+# gradspins = 1                       # spins at which gradient is applied, several can be named, seperated by whitespace
