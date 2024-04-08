@@ -51,6 +51,7 @@ function write_xyt_wave(filename, info, ux, uy, ut)
 
 end
 
+
 "save pulse components ux, uy, offset and ut as xyzt file\n
 output: written in file"
 function write_xyzt_wave(filename, info, ux, uy, uz, ut)
@@ -63,6 +64,7 @@ function write_xyzt_wave(filename, info, ux, uy, uz, ut)
   close(io)
 
 end
+
 
 "save pulse components ux, uy, offset and ut as xygt file
 grad: strength of gradient in T/M of each time step (not graduz!!!)\n
@@ -100,6 +102,7 @@ function write_xyzgt_wave(filename, info, ux, uy, uz, grad, ut, acqux, acquy, ac
 
 end
 
+
 "converts bruker file format to xygt file format\n
 so far only either seq, acq oder homod is implemented in the converter\n
 tpulse in ms\n
@@ -122,8 +125,3 @@ function convert_bruker_to_xyzgt(brukerfilename, xygtfilename, rfmax, tpulse, se
         write_xyzgt_wave(xygtfilename, "# " * info * "\n# rfmax = " * string(rfmax) * " Hz, tpulse = " * string(tpulse) * " ms", [], [], [], [], [], [], [], [], [], [], ux, uy, uz, grad, ut)
     end
 end
-
-
-# convert_bruker_to_xyzgt("C:/Users/Lisa/Documents/KIT/WS202324/Pulse/cw.bruker", "C:/Users/Lisa/Documents/KIT/WS202324/Pulse/cw-acq.xyzgt", 10000, 0.05, false, true, false, "cw")
-# convert_bruker_to_xyzgt("C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BUSS.bruker", "C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BUSS.xyzgt", 14000, 123.2, false, true, false, "BUSS")
-# convert_bruker_to_xyzgt("C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_Lisa.bruker", "C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_shifted.xyzgt", 234, 10, false, false, true, "Rsnob shifted by 2250 Hz")

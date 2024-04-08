@@ -120,8 +120,6 @@ function pulse_for_supercycle(cycle, rfmax, pdigits, tpulse, bwdth, n, k)
 end
 
 
-
-
 "generate ux, uy, uz and ut arrays, starting from a given pulse in ux, uy, uz and ut and the name of the supercycle\n
 output: ux, uy, uz, ut"
 function supercycles(cycle, ux, uy, uz, ut)
@@ -171,6 +169,7 @@ function supercycles(cycle, ux, uy, uz, ut)
     return fux, fuy, fuz, fut
 end
 
+
 "supercycles are applied, e.g. MLEV4, MLEV8, MLEV16, MLEV64, WALTZ4, WALTZ8, WALTZ16, P5, P7, P9\n
 output: cycphase"
 function get_cycphase(cycle)
@@ -190,10 +189,6 @@ function get_cycphase(cycle)
         cycphase = [0, 105, 300, 255, 300, 105, 0]
     elseif cycle == "P9"
         cycphase = [0, 15, 180, 165, 270, 165, 180, 15, 0]
-    # elseif cycle == "new"
-    #     cycphase = newcycphase
-    #     print("new phase of supercycle given: ")
-    #     println(cycphase)
     else
         println("supercycle not implemented yet")
     end

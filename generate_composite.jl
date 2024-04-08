@@ -1,3 +1,4 @@
+
 "method to get the greatest commond divisor a for two floats\n
 output: a"
 function float_gcd(a, b, rtol = 1e-05, atol = 1e-08)
@@ -60,7 +61,6 @@ function generate_all_composite(filename_info, amplitude)
             
             # phase_2 is required that the number of data points corresponds to the durations of the pulses
             point = [dur/gcd_1 for dur in durations]
-            println(point)
             phase_2=empty([1.0], Float64)
             for len in eachindex(durations)
                 for i in 1:point[len]*100
@@ -69,8 +69,6 @@ function generate_all_composite(filename_info, amplitude)
             end
 
             ampl = ones(1,size(phase_2)[1])
-            #@show(phase_2, point, durations, angle, phase, total_durations, [info])
-            #@show(ampl, phase_2)
             
             # generate the wave file in bruker format
             write_bruker_wave(info, ampl, phase_2, [info, "durations = " * string(total_durations) * " us", "RF" * string(amplitude/1000)])

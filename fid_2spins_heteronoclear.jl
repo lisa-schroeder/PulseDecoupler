@@ -1,8 +1,6 @@
 using QuadGK
 using StatsBase
 
-include("gradients.jl")
-
 "description of each important variablen is returned as dict. Keywords are the names of the parameters as string\n
 output: dict with params"
 function get_params_info()
@@ -21,7 +19,6 @@ function wave_parameters(filename, rfmax, tpulse)
 
     return ampl, phase, ptgrid
 end
-
 
 
 "pulse is repeated until it is longer than the acquisition time\n
@@ -209,7 +206,6 @@ function get_final_pulse_acq_bilevel(nbilevel::Int64, nspins, ux, uy, uz, ut, np
 end
 
 
-
 "get parameters of final pulse, which is repeated until the end of the fid, and which is cut into two pieces at each dwell time\n
 output: acqux, acquy, acquz, acqut, digdwell"
 function get_final_pulse_acq(ux, uy, uz, ut, npoints, dwell)
@@ -281,7 +277,6 @@ function get_fid_reduced_Liouville_space(rhoinit, digdwell, acqux, acquy, acquz,
 end
 
 
-
 "function to calculate the propargator according to Journal of Magnetic Resonance 201 (2009) 7–17 \n
 S_offs: offset of spin S in Hz \n
 eps: epsilon for B1 inhomogeneity \n
@@ -341,8 +336,7 @@ function get_fid_Liouville_space(cstrength, rhoinit, digdwell, acqux, acquy, acq
 
     for iB1 = 1:nB1
         for ioffs=1:noffs
-            @show ioffs
-
+   
             # simulating the FID
             rho = rhoinit
             ipulse = 1                  # points of pulse
@@ -365,97 +359,6 @@ function get_fid_Liouville_space(cstrength, rhoinit, digdwell, acqux, acquy, acq
                         hpulse = hpulse + 2*pi*acquz[ispin,ipulse]*iz[:,:,ispin]
                     end
                     uevo = exp(-i*(hj12+hcs+hpulse)*acqut[pulsespins[1],ipulse])
-                    rho = uevo*rho*uevo'
-                    ipulse += 1
-                end
-            end
-        end
-    end
-    return fid
-end
-
-
-"get fid calculated in spin operator formalism\n
-output: fid"
-function get_fid_Liouville_space_10spins(cstrength, nspins, spingroups, pulsespingroup, fidspingroup, cs, sc, dc, rhoinit, digdwell, acqux, acquy, acquz, acqut, fB1, nB1, noffs, npoints, dwell, T2_time)
-    fid = zeros(ComplexF64, nB1, noffs, npoints)
-
-    offsspins = collect(1:size(spingroups)[1])
-    offsspins = deleteat!(offsspins, offsspins .== fidspingroup)
-
-    ampl, phase = xy_to_ampl_phase(acqux, acquy)
-
-    # spin densities, Hamiltonians, propagators
-    fmgroup = []
-    fxgroup = []
-    fygroup = []
-    fzgroup = []
-
-    spincount = 1
-    for igroup in spingroups
-        fmgroup_temp = zeros(2^nspins,2^nspins)
-        fxgroup_temp = zeros(2^nspins,2^nspins)
-        fygroup_temp = zeros(2^nspins,2^nspins)
-        fzgroup_temp = zeros(2^nspins,2^nspins)
-        for ispin = 1:igroup
-            fmgroup_temp = fmgroup_temp + im[:,:,spincount]
-            fxgroup_temp = fxgroup_temp + ix[:,:,spincount]
-            fygroup_temp = fygroup_temp + iy[:,:,spincount]
-            fzgroup_temp = fzgroup_temp + iz[:,:,spincount]
-            spincount += 1
-        end
-        push!(fmgroup, fmgroup_temp)
-        push!(fxgroup, fxgroup_temp)
-        push!(fygroup, fygroup_temp)
-        push!(fzgroup, fzgroup_temp)
-    end
-
-
-    hcs = zeros(2^nspins,2^nspins)
-    hsc = zeros(2^nspins,2^nspins)
-    hdc = zeros(2^nspins,2^nspins)
-    for ispins = 1:nspins
-        hcs = hcs - 2*pi*(cs[ispins])*iz[:,:,ispins]
-        if ispins < nspins
-            for jspins = ispins+1:nspins
-                if cstrength == "strong"
-                    hsc = hsc + 2*pi*sc[ispins,jspins]*(ix[:,:,ispins]*ix[:,:,jspins]+iy[:,:,ispins]*iy[:,:,jspins]+iz[:,:,ispins]*iz[:,:,jspins])
-                elseif cstrength == "weak"
-                    hsc = hsc + 2*pi*sc[ispins,jspins]*(iz[:,:,ispins]*iz[:,:,jspins])
-                else
-                    println("please enter \"strong\" or \"weak\" as coupling strength")
-                end
-                hdc = hdc + 2*pi*dc[ispins,jspins]*(-ix[:,:,ispins]*ix[:,:,jspins]-iy[:,:,ispins]*iy[:,:,jspins]+2*iz[:,:,ispins]*iz[:,:,jspins])
-                println("sc,dc[",ispins,jspins,"]: ",sc[ispins,jspins]," Hz , ", dc[ispins,jspins]," Hz")
-            end
-        end
-    end
-
-    for ioffs = 1:noffs
-        for iB1 = 1:nB1
-
-            # simulating the FID
-            rho = rhoinit
-            ipulse = 1                  # points of pulse
-
-            for ipoints = 1:npoints     # points of measurement
-                
-                # calculate fid at each acquisition point
-                fid[iB1, ioffs, ipoints] = tr(rho*fmgroup[fidspingroup])*exp(-(ipoints-1)*dwell/T2_time)
-                # hpulse = 0
-
-                for idig = 1:digdwell[ipoints]        # calculate rho for every digit between two acquisition points
-                    phasesin, phasecos = sincosd(phase[ipulse])
-                    hpulse = zeros(2^nspins,2^nspins)
-                    hoffs = zeros(2^nspins,2^nspins)
-                    for ipulsespin in pulsespingroup
-                        hpulse = hpulse + 2*pi*(fB1[iB1]*ampl[ipulse] * (phasecos*fxgroup[ipulsespin]+phasesin*fygroup[ipulsespin]) - acquz[ipulse]*fzgroup[ipulsespin])
-                    end
-                    for ioffsspin in offsspins
-                        hoffs = -2*pi*offs[ioffs]*fzgroup[ioffsspin]
-                    end
-                    hevo = hcs + hsc + hdc + hpulse + hoffs
-                    uevo = exp(-i*hevo*acqut[ipulse])
                     rho = uevo*rho*uevo'
                     ipulse += 1
                 end
@@ -521,21 +424,6 @@ function simulate_fid_heteroD(cstrength, Liouville_space, acqux, acquy, acquz, a
     else
         println("algorithm not implemented. Please choose \"reduced\" or \"not reduced\"")
     end
-    time = [i * dwell for i in 0:(npoints-1)]       # times at which acquisition was done
-    
-    spectr = fft_fid(fid, nB1, noffs, npoints)
-    projection = get_projection(spectr, nB1, noffs)
-
-    return spectr, fid, projection, time
-end
-
-"starting with the pulse parameters of an adiabatic pulse, the spectra, fid and projection are simulated\n
-output: spectr, fid, projection, time"
-function simulate_fid_10spins(cstrength, nspins, spingroups, pulsespingroup, fidspingroup, cs, sc, dc, acqux, acquy, acquz, acqut, rhoinit, fB1, nB1, noffs, npoints, dwell, T2_time)
-
-    facqux, facquy, facquz, facqut, digdwell = get_final_pulse_acq(acqux, acquy, acquz, acqut, npoints, dwell)
- 
-    fid = get_fid_Liouville_space_10spins(cstrength, nspins, spingroups, pulsespingroup, fidspingroup, cs, sc, dc, rhoinit, digdwell, facqux, facquy, facquz, facqut, fB1, nB1, noffs, npoints, dwell, T2_time)
     time = [i * dwell for i in 0:(npoints-1)]       # times at which acquisition was done
     
     spectr = fft_fid(fid, nB1, noffs, npoints)
@@ -616,6 +504,7 @@ function get_rf_average_power(ux, uy, ut, pulsespins)
     return rfav_max
 end
 
+
 "calculate average of pulse amplitude as root mean square value, averaged over all bilevel pulses\n
 output: average of rf power"
 function get_rf_average_power_bilevel(ux, uy, ut, pulsespins, nbilevel)
@@ -624,7 +513,6 @@ function get_rf_average_power_bilevel(ux, uy, ut, pulsespins, nbilevel)
         for ifid in 1:nbilevel
             ampl = sqrt.(ux[ispin][ifid].^2 + uy[ispin][ifid].^2)
             rfav = rfav + sqrt.(1/sum(ut[ispin][ifid])*sum(ampl.^2 .* ut[ispin][ifid])) / nbilevel
-            @show sqrt.(1/sum(ut[ispin][ifid])*sum(ampl.^2 .* ut[ispin][ifid]))
         end
     end
     println("rfav = ", rfav, " Hz")
@@ -647,8 +535,6 @@ function get_ptgrid(ut)
 
     return ptgrid
 end
-
-
 
 
 "pulses are split up between each dwell times\n
@@ -757,6 +643,7 @@ function adiabatic_to_bilevel_one_spin(nbilevel, acqux, acquy, acquz, acqut)
 
 end
 
+
 "calculate offset, symmetric around 0 Hz with width and noffs\n
 output: offs"
 function get_offset(noffs, width)
@@ -768,6 +655,7 @@ function get_offset(noffs, width)
     return offs
 end
 
+
 "calculate offset, asymmetrically from left to right\n
 output: offs"
 function get_offset_asymm(left, right, noffs)
@@ -778,6 +666,7 @@ function get_offset_asymm(left, right, noffs)
     end
     return offs
 end
+
 
 "calculate B1 symmetrically varying from -theta to +theta
 B1: factor which has to multiplied with the rf-amplitude\n
@@ -836,7 +725,133 @@ function magnetization(ux, uy, ut, nB1, noffs, fB1, offs)
 end
 
 
+"### correct_ timing_ two_pulses(ux1, uy1, uz1, ut1, ux2, uy2, uz2, ut2)
+make timevector of the two pulses the same"
+function correct_timing_two_pulses(ux, uy, uz, ut)
+    fux1 = Float64[]
+    fuy1 = Float64[]
+    fuz1 = Float64[]
+    fut1 = Float64[]
+    fux2 = Float64[]
+    fuy2 = Float64[]
+    fuz2 = Float64[]
+    fut2 = Float64[]
+    ptgrid1 = get_ptgrid(ut[1])
+    ptgrid2 = get_ptgrid(ut[2])
+
+    ct = 0.0
+    dig1 = 1
+    dig2 = 1
+    while dig1 <= size(ux[1])[1] && dig2 <= size(ux[2])[1]
+        append!(fux1, ux[1][dig1])
+        append!(fuy1, uy[1][dig1])
+        append!(fuz1, uz[1][dig1])
+        append!(fux2, ux[2][dig2])
+        append!(fuy2, uy[2][dig2])
+        append!(fuz2, uz[2][dig2])
+        if ptgrid1[dig1] < ptgrid2[dig2]
+            append!(fut1, ptgrid1[dig1]-ct)
+            append!(fut2, ptgrid1[dig1]-ct)
+            ct = ptgrid1[dig1]
+            dig1 += 1
+            # println(" next is 1")
+        elseif ptgrid1[dig1] > ptgrid2[dig2]
+            append!(fut1, ptgrid2[dig2]-ct)
+            append!(fut2, ptgrid2[dig2]-ct)
+            ct = ptgrid2[dig2]
+            dig2 += 1
+            # println(" next is 2")
+        else 
+            append!(fut1, ptgrid1[dig1]-ct)
+            append!(fut2, ptgrid2[dig2]-ct)
+            ct = ptgrid1[dig1]
+            dig1 += 1
+            dig2 += 1
+            # println("both are next")
+        end
+        # @show ct, dig1, dig2, size(ux[1]), size(ux[2])
+    end
+
+    fux = [fux1 fux2]'
+    fuy = [fuy1 fuy2]'
+    fuz = [fuz1 fuz2]'
+    fut = [fut1 fut2]'
+
+
+    return fux, fuy, fuz, fut
+end
+
+
+"### correct_ timing_ two_pulses(ux, uy, uz, ut)
+make timevector of the two pulses with bilevel the same"
+function correct_timing_two_pulses_bilevel(ux, uy, uz, ut)
+
+    fux, fuy, fuz, fut = Vector{Vector{Vector{Float64}}}(), Vector{Vector{Vector{Float64}}}(), Vector{Vector{Vector{Float64}}}(), Vector{Vector{Vector{Float64}}}()
+    for ispin = 1:size(ux)[1]
+        push!(fux, [[]]); push!(fuy, [[]]); push!(fuz, [[]]); push!(fut, [[]])
+    end
+
+    for ilevel = 2:size(ux[1])[1]
+        for ispin = 1:size(ux)[1]
+            push!(fux[ispin], []); push!(fuy[ispin], []); push!(fuz[ispin], []); push!(fut[ispin], [])
+        end
+    end
+
+    for ilevel = 1:size(ux[1])[1]
+        uxtemp1, uytemp1, uztemp1, uttemp1, uxtemp2, uytemp2, uztemp2, uttemp2 = Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[]
+        ptgrid1 = get_ptgrid(ut[1][ilevel])
+        ptgrid2 = get_ptgrid(ut[2][ilevel])
+
+        ct = 0.0
+        dig1 = 1
+        dig2 = 1
+        while dig1 <= size(ux[1][ilevel])[1] && dig2 <= size(ux[2][ilevel])[1]
+            append!(uxtemp1, ux[1][ilevel][dig1])
+            append!(uytemp1, uy[1][ilevel][dig1])
+            append!(uztemp1, uz[1][ilevel][dig1])
+            append!(uxtemp2, ux[2][ilevel][dig2])
+            append!(uytemp2, uy[2][ilevel][dig2])
+            append!(uztemp2, uz[2][ilevel][dig2])
+            if ptgrid1[dig1] < ptgrid2[dig2]
+                append!(uttemp1, ptgrid1[dig1]-ct)
+                append!(uttemp2, ptgrid1[dig1]-ct)
+                ct = ptgrid1[dig1]
+                dig1 += 1
+                # println(" next is 1")
+            elseif ptgrid1[dig1] > ptgrid2[dig2]
+                append!(uttemp1, ptgrid2[dig2]-ct)
+                append!(uttemp2, ptgrid2[dig2]-ct)
+                ct = ptgrid2[dig2]
+                dig2 += 1
+                # println(" next is 2")
+            else 
+                append!(uttemp1, ptgrid1[dig1]-ct)
+                append!(uttemp2, ptgrid2[dig2]-ct)
+                ct = ptgrid1[dig1]
+                dig1 += 1
+                dig2 += 1
+                # println("both are next")
+            end
+        end
+
+        fux[1][ilevel] = uxtemp1
+        fuy[1][ilevel] = uytemp1
+        fuz[1][ilevel] = uztemp1
+        fut[1][ilevel] = uttemp1
+        fux[2][ilevel] = uxtemp2
+        fuy[2][ilevel] = uytemp2
+        fuz[2][ilevel] = uztemp2
+        fut[2][ilevel] = uttemp2
+        
+    end
+
+
+    return fux, fuy, fuz, fut
+end
+
+
 "simulate spectra for each J in allJs \n
+!!! spectrum which will be subtracted needs to be changed in the method if the linewidth is different from 1.6 Hz and noffs is not 101 with a range of -50 to 50 kHz !!!\n
 returns: \n
 pmax (fitting parameters of maximal intensity) \n
 pside (fitting parameters of biggest sideband) \n
@@ -847,8 +862,11 @@ maxsideatfreq (frequency at which biggest sideband is) \n
 allspectr (contains all calculated spectra)\n
 output: maxintens, maxatfreq, maxintensside, maxsideatfreq, maxintenssidesub, maxsideatfreqsub, allspectr"
 function simulate_sidebands_J(acqux, acquy, acquz, acqut, allJs, nB1, noffs, fB1, npoints, dwell, T2_time, offs, fidspin, pulsespins, offsetspins)
-    # spectr0J = get_spectr_0J_linewidth6Hz()
-    spectr0J = get_spectr_0J_linewidth1Hz6()
+    # instead it could be implemented that the FID for J=0 Hz is calculated directly
+
+    spectr0J = get_spectr_0J_linewidth6Hz()
+    # spectr0J = get_spectr_0J_linewidth1Hz6()
+
     rhoinit = [0.0, 0.0, 0.0, 1.0]
     text1 = ""
     text2 = ""
@@ -857,16 +875,6 @@ function simulate_sidebands_J(acqux, acquy, acquz, acqut, allJs, nB1, noffs, fB1
     maxatfreq = zeros(noffs, size(allJs)[1])
     maxintensside = zeros(noffs, size(allJs)[1])
     maxsideatfreq = zeros(noffs, size(allJs)[1])
-    maxintenssidesub = zeros(noffs, size(allJs)[1])
-    maxsideatfreqsub = zeros(noffs, size(allJs)[1])
-    fmaxintensside = zeros(size(allJs)[1])
-    fmaxintenssidesub = zeros(size(allJs)[1])
-    fmaxintens = zeros(size(allJs)[1])
-    fmaxsidesubatoffs = zeros(size(allJs)[1])
-    fmaxsideatoffs = zeros(size(allJs)[1])
-    fmaxintensatoffs = zeros(size(allJs)[1])
-    # pside = zeros(noffs, 2)
-    # pmax = zeros(noffs, 2)
     allspectr = zeros(size(allJs)[1], nB1, noffs, npoints)
 
     for iJ in eachindex(allJs)
@@ -879,32 +887,28 @@ function simulate_sidebands_J(acqux, acquy, acquz, acqut, allJs, nB1, noffs, fB1
             spectr0J_temp = spectr0J ./ maximum(spectr0J) * maximum(spectr[1,ioffs,:])
             maxintens[ioffs, iJ] = findmax(abs.(spectr[1,ioffs,:]))[1]
             maxatfreq[ioffs, iJ] = freqs[findmax(abs.(spectr[1,ioffs,:]))[2]]
-            maxintensside[ioffs, iJ] = findmax(abs.(spectr[1,ioffs,2601:end]))[1]
-            maxsideatfreq[ioffs, iJ] = freqs[2600+findmax(abs.(spectr[1,ioffs,2601:end]))[2]]
-            maxintenssidesub[ioffs, iJ] = findmax(abs.(spectr[1,ioffs,2511:end]-spectr0J_temp[2511:end]))[1]
-            maxsideatfreqsub[ioffs, iJ] = freqs[2510+findmax(abs.(spectr[1,ioffs,2511:end]-spectr0J_temp[2511:end]))[2]]
+            maxintensside[ioffs, iJ] = findmax(abs.(spectr[1,ioffs,2511:end]-spectr0J_temp[2511:end]))[1]
+            maxsideatfreq[ioffs, iJ] = freqs[2510+findmax(abs.(spectr[1,ioffs,2511:end]-spectr0J_temp[2511:end]))[2]]
             
         end
-
-        rfav_power = get_rf_average_power(acqux, acquy, acqut, pulsespins)
-        xi, bandwidth, offs_pos, offs_neg = determine_xi(80, rfav_power, projection, offs)
-        @show offs_neg, offs_pos
-        fmaxintensside[iJ] = maximum(maxintensside[offs_neg:offs_pos-1,iJ])
-        fmaxsideatoffs[iJ] = findmax(maxintensside[offs_neg:offs_pos-1,iJ])[2] + offs_neg-1
-        fmaxintenssidesub[iJ] = maximum(maxintenssidesub[offs_neg:offs_pos-1,iJ])
-        fmaxsidesubatoffs[iJ] = findmax(maxintenssidesub[offs_neg:offs_pos-1,iJ])[2] + offs_neg-1
-        fmaxintens[iJ] = sum(maxintens[offs_neg:offs_pos-1,iJ])/(offs_pos-offs_neg)
-        fmaxintensatoffs[iJ] = findmax(maxintens[offs_neg:offs_pos-1,iJ])[2] + offs_neg-1
-
     end
 
-    return fmaxintens, maxatfreq, fmaxintensatoffs, fmaxintensside, maxsideatfreq, fmaxsideatoffs, fmaxintenssidesub, maxsideatfreqsub, fmaxsidesubatoffs, allspectr
+    return maxintens, maxatfreq, maxintensside, maxsideatfreq, allspectr
 end
 
 
+"simulate spectra for each J in allJs with bilevel decoupling \n
+!!! spectrum which will be subtracted needs to be changed in the method if the linewidth is different from 1.6 Hz and noffs is not 101 with a range of -50 to 50 kHz !!!\n
+pmax (fitting parameters of maximal intensity) \n
+pside (fitting parameters of biggest sideband) \n
+maxintens (total maximum intensity) \n
+maxatfreq (frequency at which the maximum intensity is) \n
+maxintensside (intensity of biggest sideband) \n
+maxsideatfreq (frequency at which biggest sideband is) \n
+allspectr (contains all calculated spectra)\n
+output: maxintens, maxatfreq, maxintensside, maxsideatfreq, maxintenssidesub, maxsideatfreqsub, allspectr"
 function simulate_sidebands_J_bilevel(nbilevel, acquxm, acquym, acquzm, acqutm, allJs, nB1, noffs, fB1, npoints, dwell, T2_time, offs, fidspin, pulsespins, offsetspins, nspins)
     rhoinit = [0.0, 0.0, 0.0, 1.0]
-    # rhoinit = sum(ix[:,:,:], dims=3)[:,:,1]
     text1 = ""
     text2 = ""
     freqs = fftshift(fftfreq(npoints,1/dwell))
@@ -912,15 +916,13 @@ function simulate_sidebands_J_bilevel(nbilevel, acquxm, acquym, acquzm, acqutm, 
     maxatfreq = zeros(noffs, size(allJs)[1])
     maxintensside = zeros(noffs, size(allJs)[1])
     maxsideatfreq = zeros(noffs, size(allJs)[1])
-    maxintenssidesub = zeros(noffs, size(allJs)[1])
-    maxsideatfreqsub = zeros(noffs, size(allJs)[1])
-    pside = zeros(noffs, 2)
-    pmax = zeros(noffs, 2)
     allspectr = zeros(size(allJs)[1], nB1, noffs, npoints)
 
     for iJ in eachindex(allJs)
         J = allJs[iJ]       # changed to non-global
         @show J
+
+        # instead it could be implemented that the FID for J=0 Hz is calculated directly
         spectr0J = get_spectr_0J_linewidth6Hz()
         # spectr0J = get_spectr_0J_linewidth1Hz6()
         global spectr, fid, projection, tim = global spectr, fid, projection, tim = @time simulate_fid_heteroD_bilevel("weak", "reduced", acquxm, acquym, acquzm, acqutm, nbilevel, rhoinit, J, fB1, nB1, noffs, npoints, dwell, T2_time, nspins, offs, fidspin, pulsespins, offsetspins)
@@ -929,42 +931,13 @@ function simulate_sidebands_J_bilevel(nbilevel, acquxm, acquym, acquzm, acqutm, 
             spectr0J_temp = spectr0J ./ maximum(spectr0J) * maximum(spectr[1,ioffs,:])
             maxintens[ioffs, iJ] = findmax(abs.(spectr[1,ioffs,:]))[1]
             maxatfreq[ioffs, iJ] = freqs[findmax(abs.(spectr[1,ioffs,:]))[2]]
-            maxintensside[ioffs, iJ] = findmax(abs.(spectr[1,ioffs,2531:end]))[1]
-            maxsideatfreq[ioffs, iJ] = freqs[2530+findmax(abs.(spectr[1,ioffs,2531:end]))[2]]
-            maxintenssidesub[ioffs, iJ] = findmax(abs.(spectr[1,ioffs,2511:end]-spectr0J_temp[2511:end]))[1]
-            maxsideatfreqsub[ioffs, iJ] = freqs[2510+findmax(abs.(spectr[1,ioffs,2511:end]-spectr0J_temp[2511:end]))[2]]
+            maxintensside[ioffs, iJ] = findmax(abs.(spectr[1,ioffs,2511:end]-spectr0J_temp[2511:end]))[1]
+            maxsideatfreq[ioffs, iJ] = freqs[2510+findmax(abs.(spectr[1,ioffs,2511:end]-spectr0J_temp[2511:end]))[2]]
         end
 
     end
 
-    
-    # for ioffs = 1:noffs
-    #     @. modelside(x, p) = p[1]*x^2+p[2]
-    #     p0 = [0.002, 1.0]
-    #     fitside = curve_fit(modelside, allJs, maxintensside[ioffs,:], p0)
-    #     pside[ioffs,:] = coef(fitside)
-    #     @. modelmax(x, p) = p[1]*x^2+p[2]
-    #     p0 = [-0.01, 2000]
-    #     fitmax = curve_fit(modelmax, allJs, maxintens[1,:], p0)
-    #     pmax[ioffs,:] = coef(fitmax)
-
-    #     # scatter(allJs,maxintensside[1,:], legend=false, title="BUSS-MLEV8", ylabel="intensity of biggest sideband", xlabel="coupling strength in Hz")
-    #     # scatter!(allJs,maxintensside[2,:], legend=false, title="BUSS-MLEV8", ylabel="intensity of biggest sideband", xlabel="coupling strength in Hz")
-    #     # xdata = range(0, stop=300, length=300)
-    #     # ydata = [coef(fitside)[1] * ix^2 + coef(fitside)[2] for ix in xdata]
-    #     # plot!(xdata, ydata)
-    #     # display(annotate!(80, 4, "y = a*x^2+b\na = " * string(round(coef(fitside)[1]; digits = 5)) * "\nb = " * string(round(coef(fitside)[2]; digits = 5))))
-    #     # savefig("Figures/Sidebands_J/BUSS_sideband_fitted_jl.png")
-
-    #     # scatter(allJs,maxintens[1,:], legend=false, ylabel="maximum intensity of spectrum", xlabel="coupling strength in Hz")
-    #     # xdata = range(0, stop=300, length=300)
-    #     # ydata = [coef(fitmax)[1] * ix^2 + coef(fitmax)[2] for ix in xdata]
-    #     # plot!(xdata, ydata)
-    #     # display(annotate!(60, 960, "y = a*x^2+b\na = " * string(round(coef(fitmax)[1]; digits = 5)) * "\nb = " * string(round(coef(fitmax)[2]; digits = 5))))
-    #     # savefig("Figures/Sidebands_J/WURST_maxintens_fitted_jl.png")
-    # end
-
-    return maxintens, maxatfreq, maxintensside, maxsideatfreq, maxintenssidesub, maxsideatfreqsub, allspectr
+    return maxintens, maxatfreq, maxintensside, maxsideatfreq, allspectr
 end
 
 
@@ -973,46 +946,20 @@ end
 # -------------- FUNCTIONS FOR TESTING ---------------
 
 
-function test_get_final_pulse_acq_bilevel()
-    uxtest = [[[]], [[1,1,2], [2,2,3]]]
-    uytest = [[[]], [[0,0,0], [0,0,0]]]
-    uztest = [[[]], [[0,0,0], [0,0,0]]]
-    uttest = [[[]], [[5,5,5], [5,5,5]]]
-    @test ([[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]],[[1,1,1,1,1,2,2,1,1,1],[2,2,2,2,2,3,3,2,2,2]]], [[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]], [[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]], [[[3,2,1,3,1,2,3,3,2,1],[3,2,1,3,1,2,3,3,2,1]],[[3,2,1,3,1,2,3,3,2,1],[3,2,1,3,1,2,3,3,2,1]]], [[1,2,1,2,1,1,2], [1,2,1,2,1,1,2]]) == get_final_pulse_acq_bilevel(2, 2, uxtest, uytest, uztest, uttest, 7, 3)
+# function test_get_final_pulse_acq_bilevel()
+#     uxtest = [[[]], [[1,1,2], [2,2,3]]]
+#     uytest = [[[]], [[0,0,0], [0,0,0]]]
+#     uztest = [[[]], [[0,0,0], [0,0,0]]]
+#     uttest = [[[]], [[5,5,5], [5,5,5]]]
+#     @test ([[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]],[[1,1,1,1,1,2,2,1,1,1],[2,2,2,2,2,3,3,2,2,2]]], [[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]], [[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]], [[[3,2,1,3,1,2,3,3,2,1],[3,2,1,3,1,2,3,3,2,1]],[[3,2,1,3,1,2,3,3,2,1],[3,2,1,3,1,2,3,3,2,1]]], [[1,2,1,2,1,1,2], [1,2,1,2,1,1,2]]) == get_final_pulse_acq_bilevel(2, 2, uxtest, uytest, uztest, uttest, 7, 3)
 
-    uxtest = [[[1,1,2], [2,2,3]], [[4,3,3]]]
-    uytest = [[[0,0,0], [0,0,0]], [[0,0,0]]]
-    uztest = [[[0,0,0], [0,0,0]], [[0,0,0]]]
-    uttest = [[[5,5,5], [5,5,5]], [[1,2,3]]]
-    @test ([[[1,1,1,1,1,1,1,2,2,2,1,1,1,1], [2,2,2,2,2,2,2,3,3,3,2,2,2,2]], [[4,3,3,3,4,3,3,3,4,3,3,4,3,3], [4,3,3,3,4,3,3,3,4,3,3,4,3,3]]], [[[0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0]], [[0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0]]], [[[0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0]], [[0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0]]], [[[1,2,2,1,1,2,1,2,1,2,3,1,1,1], [1,2,2,1,1,2,1,2,1,2,3,1,1,1]], [[1,2,2,1,1,2,1,2,1,2,3,1,1,1], [1,2,2,1,1,2,1,2,1,2,3,1,1,1]]], [[2,2,2,2,2,1,3], [2,2,2,2,2,1,3]]) == get_final_pulse_acq_bilevel(2, uxtest, uytest, uztest, uttest, 7, 3)
-end
-
-# test_get_final_pulse_acq_bilevel()
-
-
-
-# --------------- OLD VERSIONS --------------------
-
-
-# "### get_ final_pulse(ux, uy, uz, ut, npoints, dwell)
-# get parameters of final pulse, which is repeated until the end of the fid, and which is cut into two pieces at each dwell time"
-# function get_final_pulse_old(ux, uy, uz, ut, npoints, dwell)
-
-#     uxtemp, uytemp, uztemp, uttemp = Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}()
-
-#     for ispin in eachindex(ux)
-#         uxrep, uyrep, uzrep, utrep = repeat_pulse(ux[ispin], uy[ispin], uz[ispin], ut[ispin], npoints, dwell)
-#         uxrep, uyrep, uzrep, utrep = correct_xyz_to_dwell(uxrep, uyrep, uzrep, utrep, npoints, dwell)
-#         push!(uxrep, uxtemp)
-#         push!(uyrep, uytemp)
-#         push!(uzrep, uztemp)
-#         push!(utrep, uttemp)
-#     end
-
-#     ux1, uy1, uz1, ut1, ux2, uy2, uz2, ut2 = correct_timing_two_pulses(ux1, uy1, uz1, ut1, ux2, uy2, uz2, ut2)
-
-#     return fux, fuy, fuz, fut, digdwell
+#     uxtest = [[[1,1,2], [2,2,3]], [[4,3,3]]]
+#     uytest = [[[0,0,0], [0,0,0]], [[0,0,0]]]
+#     uztest = [[[0,0,0], [0,0,0]], [[0,0,0]]]
+#     uttest = [[[5,5,5], [5,5,5]], [[1,2,3]]]
+#     @test ([[[1,1,1,1,1,1,1,2,2,2,1,1,1,1], [2,2,2,2,2,2,2,3,3,3,2,2,2,2]], [[4,3,3,3,4,3,3,3,4,3,3,4,3,3], [4,3,3,3,4,3,3,3,4,3,3,4,3,3]]], [[[0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0]], [[0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0]]], [[[0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0]], [[0,0,0,0,0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0,0,0,0,0]]], [[[1,2,2,1,1,2,1,2,1,2,3,1,1,1], [1,2,2,1,1,2,1,2,1,2,3,1,1,1]], [[1,2,2,1,1,2,1,2,1,2,3,1,1,1], [1,2,2,1,1,2,1,2,1,2,3,1,1,1]]], [[2,2,2,2,2,1,3], [2,2,2,2,2,1,3]]) == get_final_pulse_acq_bilevel(2, uxtest, uytest, uztest, uttest, 7, 3)
 # end
+
 
 "return spectrum fully decoupled. Only for linewidth = 6 Hz and for noffs = 101 from -50 kHz to +50 kHz \n
 output: spectrum at J = 0 Hz"

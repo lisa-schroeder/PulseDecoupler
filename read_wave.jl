@@ -1,7 +1,5 @@
 using Test
 
-
-
 "read in ux, uy, uz and ut of xyzt file format\n
 output: ux, uy, uz, ut"
 function read_xyzt(filename)
@@ -29,7 +27,6 @@ function read_xyzt(filename)
 end
 
 
-
 "read in ux, uy and ut of xyt file format\n
 output: ux, uy, ut"
 function read_xyt(filename)
@@ -51,7 +48,6 @@ function read_xyt(filename)
 
     return ux, uy, ut
 end
-
 
 
 "read in ux, uy,grad and ut of xyzgt file format\n
@@ -104,7 +100,6 @@ function read_xyzgt(filename)
 end
 
 
-
 "read in bruker file and return x, y, z and time of each pulse as vector of arrays for multiple FIDs\n
 output: uxm, uym, uzm, gradm, utm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm"
 function read_xyzgt_bilevel(filename)
@@ -122,7 +117,6 @@ function read_xyzgt_bilevel(filename)
     end
     return uxm, uym, uzm, gradm, utm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm
 end
-
 
 
 "read in ampl and phase from Bruker file format\n
@@ -148,7 +142,6 @@ function read_bruker_wave(filename)
 end
 
 
-
 "read in bruker file and return x, y, z and time of each pulse\n
 output: ux, uy, uz, grad, ut"
 function bruker_to_xyzgt(filename, rfmax, tpulse)
@@ -163,7 +156,6 @@ function bruker_to_xyzgt(filename, rfmax, tpulse)
 
     return ux, uy, uz, grad, ut
 end
-
 
 "read in bruker file and return x, y, z and time of each pulse as vector of arrays for multiple FIDs\n
 output: fux, fuy, fuz, fgrad, fut"
@@ -186,11 +178,6 @@ end
 
 
 
-
-
-
-
-
 function test_read_xyzgt()
     write_xyzgt_wave("C:/Users/Lisa/Documents/KIT/WS202324/Pulse/test.xyzgt", "# test pulse \n# having gradient, homo and hetero Decoupling", [1,2,3], [4,5,6], [0,0,0], [7,7,7], [0.5, 0.5, 0.5], [8,8,8], [1,1,1], [0,0,0], [9,9,9], [0.1, 0.1, 0.2], [2], [1], [0], [0], [0.03])
     write_xyzgt_wave("C:/Users/Lisa/Documents/KIT/WS202324/Pulse/test_no_heteroD.xyzgt", "# test pulse \n# having gradient, homo Decoupling", [1,2,3], [4,5,6], [0,0,0], [7,7,7], [0.5, 0.5, 0.5], [], [], [], [], [], [2], [1], [0], [0], [0.03])
@@ -202,5 +189,3 @@ function test_read_xyzgt()
     @test ([1,2,3], [4,5,6], [0,0,0], [7,7,7], [0.5, 0.5, 0.5], [8,8,8], [1,1,1], [0,0,0], [9,9,9], [0.1, 0.1, 0.2], [], [], [], [], []) == read_xyzgt("C:/Users/Lisa/Documents/KIT/WS202324/Pulse/test_no_homoD.xyzgt")
     @test ([], [], [], [], [], [8,8,8], [1,1,1], [0,0,0], [9,9,9], [0.1, 0.1, 0.2], [2], [1], [0], [0], [0.03]) == read_xyzgt("C:/Users/Lisa/Documents/KIT/WS202324/Pulse/test_no_sequence.xyzgt")
 end
-
-# test_read_xyzgt()

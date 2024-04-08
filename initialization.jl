@@ -1,18 +1,16 @@
 using StaticArrays
 
 
-
 "variables are initialized as given in paramfile, simulations defined in paramfile will be performed\\
 results will be all global variables, dependent on the simulation\n
 output: nB1, noffs, B1, offs, dwell, npoints, allJs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, sequxm, sequym, sequzm, seqgradm, sequtm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm"
 function performsimulations(paramfilename)
     nspins, npoints, nB1, noffs, fB1, offs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, sequxm, sequym, sequzm, seqgradm, sequtm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm, nbilevel::Int64, J, dwell, T2_time, theta, rfmaxseq, rfmaxacq, rfmaxhom, thresh, dchunk, eps, startmag, haminit, centered_inversion, cs, sc, dc, spingroups, pulsespingroup, allJs, fidspingroup, fidspin, pulsespins, offsetspins, ngrads, gradphase, dgrad, gradspins, gradstrength, tubesize, gammaH, bilevel_flag, iu, ix, iy, iz, ip, im, ia, ib = initialize(paramfilename)
     @time simulate(paramfilename, nspins, npoints, nB1, noffs, fB1, offs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, sequxm, sequym, sequzm, seqgradm, sequtm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm, nbilevel, J, dwell, T2_time, theta, rfmaxseq, rfmaxacq, rfmaxhom, thresh, dchunk, eps, startmag, haminit, centered_inversion, cs, sc, dc, spingroups, pulsespingroup, allJs, fidspingroup, fidspin, pulsespins, offsetspins, ngrads, gradphase, dgrad, gradspins, gradstrength, tubesize, gammaH, bilevel_flag, iu, ix, iy, iz, ip, im, ia, ib)
-    # B1 = fB1 .* maximum([maximum(rfmaxseq), maximum(rfmaxacq), maximum(rfmaxhom)])
+    # B1 is calculated from the pulse during heteronuclear decoupling on the second spin
     B1 = fB1 .* maximum(rfmaxacq[2])
     return nB1, noffs, B1, offs, dwell, npoints, allJs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, sequxm, sequym, sequzm, seqgradm, sequtm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm
 end
-
 
 
 "### initialize(paramfilename)
@@ -29,19 +27,15 @@ function initialize(paramfilename)
     hetero_fid_flag = false
     any_acq_flag = false
     sequence_fid_flag = false
-    spins10_flag = false
     magnetization_simulation_flag = false
-    avH_flag = false
     waugh_flag = false
     bilevel_flag = false
     sideband_flag = false
-    gradient_flag = false
     xyzgt_flag = false
     pulsetype_flag = false
     nbilevel = 1::Int64
     nspins = 0
-    # sequxtemp, uytemp, uztemp, seqgradtemp, uttemp, acquxtemp, acquytemp, acquztemp, acqgradtemp, acquttemp, homuxtemp, homuytemp, homuztemp, homgradtemp, homuttemp = Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(),Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}()
-
+  
     for count in eachindex(data)
 
         currentline = data[count]
@@ -74,8 +68,6 @@ function initialize(paramfilename)
             println("pulsetype of spin ", spinnumber, ":  ", pulsetype[spinnumber])
         elseif occursin("simulate magnetization", currentline)
             magnetization_simulation_flag = true
-        elseif occursin("average H", currentline)
-            avH_flag = true
         elseif occursin("Waugh", currentline)
             waugh_flag = true
         elseif occursin("simulate sidebands", currentline)
@@ -98,12 +90,6 @@ function initialize(paramfilename)
         if occursin("Sequence", currentline) && occursin("simulate FID", currentline)
             sequence_fid_flag = true
         end
-        if occursin("10 spins", currentline)
-            spins10_flag = true
-        end
-        if occursin("gradient", currentline)
-            gradient_flag = true
-        end
         if occursin("bilevel", currentline)
             bilevel_flag = true
             nbilevel = parse(Float64, split(currentline)[end])
@@ -115,8 +101,6 @@ function initialize(paramfilename)
 
     end
 
-    @show xyzgt_flag, pulsetype_flag, hetero_fid_flag, any_acq_flag
-    
     for count in eachindex(data)
         currentline = data[count]
         if occursin("#", currentline)
@@ -139,19 +123,19 @@ function initialize(paramfilename)
         elseif occursin("npoints", currentline)
             ff = findfirst("=", currentline)[1]
             npoints = parse(Int64, currentline[ff+1:end])
-            if simulate_fid_flag == true || avH_flag == true
+            if simulate_fid_flag == true
                 println("npoints:              ", npoints)
             end
         elseif occursin("nB1", currentline)
             ff = findfirst("=", currentline)[1]
             nB1 = parse(Int64, currentline[ff+1:end])
-            if simulate_fid_flag == true || avH_flag == true
+            if simulate_fid_flag == true
                 println("nB1:                  ", nB1)
             end
         elseif occursin("theta", currentline)
             ff = findfirst("=", currentline)[1]
             theta = parse(Float64, currentline[ff+1:end])
-            if simulate_fid_flag == true || avH_flag == true
+            if simulate_fid_flag == true
                 println("theta:                ", theta)
             end
         elseif occursin("noffs", currentline)
@@ -232,10 +216,6 @@ function initialize(paramfilename)
             if pulsetype[spinnumber] == "WURST"
                 println("k for WURST:          ", k[spinnumber])
             end
-        elseif occursin("thresh", currentline) && avH_flag
-            ff = findfirst("=", currentline)[1]
-            thresh = parse(Float64, currentline[ff+1:end])
-            println("thresh for AvH:       ", thresh)
         elseif occursin("dchunk", currentline) && homo_fid_flag
             ff = findfirst("=", currentline)[1]
             dchunk = parse(Float64, currentline[ff+1:end]) / J
@@ -254,13 +234,10 @@ function initialize(paramfilename)
             else
                 if hetero_fid_flag || any_acq_flag
                     acqux[spinnumber], acquy[spinnumber], acquz[spinnumber], acqgrad[spinnumber], acqut[spinnumber] = bruker_to_xyzgt(pulsefilename, rfmaxacq[spinnumber], tpulseacq[spinnumber])
-                    # sequx[spinnumber], sequy[spinnumber], sequz[spinnumber], seqgrad[spinnumber], sequt[spinnumber], homux[spinnumber], homuy[spinnumber], homuz[spinnumber], homgrad[spinnumber], homut[spinnumber] = Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[]
                 elseif homo_fid_flag || any_homo_flag
                     homux[spinnumber], homuy[spinnumber], homuz[spinnumber], homgrad[spinnumber], homut[spinnumber] = bruker_to_xyzgt(pulsefilename, rfmaxhom[spinnumber], tpulsehom[spinnumber])
-                    # sequx[spinnumber], sequy[spinnumber], sequz[spinnumber], seqgrad[spinnumber], sequt[spinnumber], acqux[spinnumber], acquy[spinnumber], acquz[spinnumber], acqgrad[spinnumber], acqut[spinnumber] = Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[]
                 else
                     sequx[spinnumber], sequy[spinnumber], sequz[spinnumber], seqgrad[spinnumber], sequt[spinnumber] = bruker_to_xyzgt(pulsefilename, rfmaxseq[spinnumber], tpulseseq[spinnumber])
-                    # acqux[spinnumber], acquy[spinnumber], acquz[spinnumber], acqgrad[spinnumber], acqut[spinnumber], homux[spinnumber], homuy[spinnumber], homuz[spinnumber], homgrad[spinnumber], homut[spinnumber] = Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[]
                 end
             end
         elseif occursin("filename", currentline) && bilevel_flag == true
@@ -287,15 +264,12 @@ function initialize(paramfilename)
             spinnumber = parse(Int32, split(currentline[1:ff-1])[end])
             if hetero_fid_flag || any_acq_flag
                 acqux[spinnumber], acquy[spinnumber], acquz[spinnumber], acqut[spinnumber] = pulse_for_supercycle(pulsetype[spinnumber], rfmaxacq[spinnumber], pdigits[spinnumber], tpulseacq[spinnumber], bwdth[spinnumber], n[spinnumber], k[spinnumber])
-                # sequx[spinnumber], sequy[spinnumber], sequz[spinnumber], seqgrad[spinnumber], sequt[spinnumber], homux[spinnumber], homuy[spinnumber], homuz[spinnumber], homgrad[spinnumber], homut[spinnumber] = Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[]
                 acqgrad = zeros(size(acqux[spinnumber]))
             elseif homo_fid_flag || any_homo_flag
                 homux[spinnumber], homuy[spinnumber], homuz[spinnumber], homut[spinnumber] = pulse_for_supercycle(pulsetype[spinnumber], rfmaxhom[spinnumber], pdigits[spinnumber], tpulsehom[spinnumber], bwdth[spinnumber], n[spinnumber], k[spinnumber])
-                # sequx[spinnumber], sequy[spinnumber], sequz[spinnumber], seqgrad[spinnumber], sequt[spinnumber], acqux[spinnumber], acquy[spinnumber], acquz[spinnumber], acqgrad[spinnumber], acqut[spinnumber] = Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[]
                 homgrad = zeros(size(homux[spinnumber]))
             else
                 sequx[spinnumber], sequy[spinnumber], sequz[spinnumber], sequt[spinnumber] = pulse_for_supercycle(pulsetype[spinnumber], rfmaxseq[spinnumber], pdigits[spinnumber], tpulseseq[spinnumber], bwdth[spinnumber], n[spinnumber], k[spinnumber])
-                # acqux[spinnumber], acquy[spinnumber], acquz[spinnumber], acqgrad[spinnumber], acqut[spinnumber], homux[spinnumber], homuy[spinnumber], homuz[spinnumber], homgrad[spinnumber], homut[spinnumber] = Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[], Float64[]
                 seqgrad = zeros(size(sequx[spinnumber]))
             end
             if bilevel_flag == true && (pulsetype[spinnumber] == "WURST" || pulsetype[spinnumber] == "STUD" )
@@ -317,39 +291,6 @@ function initialize(paramfilename)
         elseif occursin("rhoinit", currentline)
             ff = findfirst("=", currentline)[1]
             startmag = currentline[ff+1:end]
-        # elseif occursin("cs =", currentline) && spins10_flag
-        #     ff = findfirst("=", currentline)[1]
-        #     cs = split(currentline[ff+1:end])
-        #     cs = [parse(Float64, ics) for ics in cs]
-        #     println("cs:                   ", cs)
-        # elseif occursin("sc =", currentline) && spins10_flag
-        #     ff = findfirst("=", currentline)[1]
-        #     sc_split = split(currentline[ff+1:end], ";")
-        #     sc = [split(sc_split[isc]) for isc in eachindex(sc_split)]
-        #     sc = [parse(Float64, sc[isc1][isc2]) for isc1 in eachindex(sc) for isc2 in eachindex(sc[1])]
-        #     sc = reshape(sc, size(sc_split)[1], size(sc_split)[1])'
-        #     println("sc:                   ", sc)
-        # elseif occursin("dc =", currentline) && spins10_flag
-        #     ff = findfirst("=", currentline)[1]
-        #     dc_split = split(currentline[ff+1:end], ";")
-        #     dc = [split(dc_split[idc]) for idc in eachindex(dc_split)]
-        #     dc = [parse(Float64, dc[idc1][idc2]) for idc1 in eachindex(dc) for idc2 in eachindex(dc[1])]
-        #     dc = reshape(dc, size(dc_split)[1], size(dc_split)[1])'
-        #     println("dc:                   ", dc)
-        # elseif occursin("spingroups", currentline) && spins10_flag
-        #     ff = findfirst("=", currentline)[1]
-        #     spingroups_temp = split(currentline[ff+1:end])
-        #     spingroups = [parse(Int32, ispingroup) for ispingroup in spingroups_temp]
-        #     println("spingroups:           ", spingroups)
-        # elseif occursin("pulsespingroup", currentline) && spins10_flag
-        #     ff = findfirst("=", currentline)[1]
-        #     pulsespingroup_temp = split(currentline[ff+1:end])
-        #     pulsespingroup = [parse(Int32, ipulsespingroup) for ipulsespingroup in pulsespingroup_temp]
-        #     println("pulsespingroup:       ", pulsespingroup)
-        # elseif occursin("fidspingroup", currentline) && spins10_flag
-        #     ff = findfirst("=", currentline)[1]
-        #     fidspingroup = parse(Int32, currentline[ff+1:end])
-        #     println("fidspingroup:         ", fidspingroup)
         elseif occursin("pulsespins", currentline)
             ff = findfirst("=", currentline)[1]
             pulsespins = [parse(Int32, ipulsespins) for ipulsespins in split(currentline[ff+1:end])]
@@ -362,61 +303,11 @@ function initialize(paramfilename)
             ff = findfirst("=", currentline)[1]
             fidspin = parse(Int32, currentline[ff+1:end])
             println("fidspin:              ", fidspin)
-        elseif occursin("haminit", currentline) && avH_flag
-            if occursin("x", currentline)
-                haminit = [1.0, 0.0, 0.0]
-                println("haminit:              x")
-            elseif occursin("y", currentline)
-                haminit = [0.0, 1.0, 0.0]
-                println("haminit:              y")
-            elseif occursin("z", currentline)
-                haminit = [0.0, 0.0, 1.0]
-                println("haminit:              z")
-            end
-        elseif occursin("centered inversion", currentline) && avH_flag
-            ff = findfirst("=", currentline)[1]
-            centered_inversion = currentline[ff+1:end]
-            if centered_inversion == "true"
-                centered_inversion = true
-                println("centered inversion used")
-            else
-                centered_inversion = false
-                println("centered inversion not used")
-            end
         elseif occursin("allJs", currentline) && sideband_flag
             ff = findfirst("=", currentline)[1]
             allJs = split(currentline[ff+1:end])
             allJs = [parse(Float64,iJ) for iJ in allJs]
             println("allJs:                ", allJs)
-        elseif occursin("dgrad", currentline) && gradient_flag
-            ff = findfirst("=", currentline)[1]
-            dgrad = parse(Float64, currentline[ff+1:end])/1000
-            println("dgrad:                ", dgrad)
-        elseif occursin("gradstrength", currentline) && gradient_flag
-            ff = findfirst("=", currentline)[1]
-            gradstrength = parse(Float64, currentline[ff+1:end])
-            println("gradstrength:         ", gradstrength)
-        elseif occursin("ngrads", currentline) && gradient_flag
-            ff = findfirst("=", currentline)[1]
-            ngrads = parse(Int32, currentline[ff+1:end])
-            println("ngrads:               ", ngrads)
-        elseif occursin("gradphase", currentline) && gradient_flag
-            ff = findfirst("=", currentline)[1]
-            gradphase = parse(Int32, currentline[ff+1:end])
-            println("gradphase:            ", gradphase)
-        elseif occursin("tubesize", currentline) && gradient_flag
-            ff = findfirst("=", currentline)[1]
-            tubesize = parse(Float64, currentline[ff+1:end])
-            println("tubesize:             ", tubesize)
-        elseif occursin("gammaH", currentline) && gradient_flag
-            ff = findfirst("=", currentline)[1]
-            gammaH = parse(Float64, currentline[ff+1:end]) * 1000000
-            println("gammaH:               ", gammaH)
-        elseif occursin("gradspins", currentline) && gradient_flag
-            ff = findfirst("=", currentline)[1]
-            gradspins_temp = split(currentline[ff+1:end])
-            gradspins = [parse(Int32, igradspins) for igradspins in gradspins_temp]
-            println("gradspins:            ", gradspins)
         end
     end
     iu, ix, iy, iz, ip, im, ia, ib = basis(nspins)
@@ -428,6 +319,7 @@ function initialize(paramfilename)
 
     return nspins, npoints, nB1, noffs, fB1, offs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, sequxm, sequym, sequzm, seqgradm, sequtm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm, nbilevel, J, dwell, T2_time, theta, rfmaxseq, rfmaxacq, rfmaxhom, thresh, dchunk, eps, startmag, haminit, centered_inversion, cs, sc, dc, spingroups, pulsespingroup, allJs, fidspingroup, fidspin, pulsespins, offsetspins, ngrads, gradphase, dgrad, gradspins, gradstrength, tubesize, gammaH, bilevel_flag, iu, ix, iy, iz, ip, im, ia, ib
 end
+
 
 "simulations are performed as defined in the paramfilename\n
 output: global variables depending on the performed simulations "
@@ -536,39 +428,13 @@ function simulate(paramfilename, nspins, npoints, nB1, noffs, fB1, offs, sequx, 
             end
         end
 
-        if occursin("simulate FID 10 spins", currentline)
-            if occursin("weak", currentline)
-                println("FID is simulated with weak coupling for up to 10 spins")       # TODO not working yet
-                global spectr, fid, projection, tim = @time simulate_fid_10spins("weak", nspins, spingroups, pulsespingroup, fidspingroup, cs, sc, dc, acqux, acquy, acquz, acqut, rhoinit, fB1, nB1, noffs, npoints, dwell, T2_time)
-            elseif occursin("strong", currentline)
-                println("FID is simulated with strong coupling for up to 10 spins")       # TODO not working yet
-                global spectr, fid, projection, tim = @time simulate_fid_10spins("strong", nspins, spingroups, pulsespingroup, fidspingroup, cs, sc, dc, acqux, acquy, acquz, acqut, rhoinit, fB1, nB1, noffs, npoints, dwell, T2_time)
-            end
-        elseif occursin("simulate FID gradients", currentline)
-            # if occursin("reduced", currentline)
-            #     if occursin("weak", currentline)
-            #         println("FID with gradients is simulated with weak coupling in the reduced Liouville space")
-            #         global spectr, fid, allfids, projection, time = simulate_fid_grad("weak", "reduced", ux, uy, uz, ut, gammaH, J, rhoinit, npoints, dwell, noffs, offs, T2_time, nB1, alignment, gradspins, gradstrength, ngrads, dgrad, gradphase, tubesize)
-            #     elseif occursin("strong", currentline)
-            #         println("FID with gradients is simulated with strong coupling in the reduced Liouville space")
-            #         global spectr, fid, allfids, projection, time = simulate_fid_grad("strong", "reduced", ux, uy, uz, ut, gammaH, J, rhoinit, npoints, dwell, noffs, offs, T2_time, nB1, alignment, gradspins, gradstrength, ngrads, dgrad, gradphase, tubesize)
-            #     end
-            # else
-                if occursin("weak", currentline)
-                    println("FID with gradients is simulated with weak coupling in the NOT reduced Liouville space")       # TODO not working yet
-                    global spectr, fid, allspectr, allfids, projection, tim = @time simulate_fid_grad("weak", "not reduced", acqux, acquy, acqgrad, acquz, acqut, gamma, J, rhoinit, npoints, dwell, noffs, offs, T2_time, nB1, ngrads, tubesize)
-                elseif occursin("strong", currentline)
-                    println("FID with gradients is simulated with strong coupling in the NOT reduced Liouville space")       # TODO not working yet
-                    global spectr, fid, allspectr, allfids, projection, tim = @time simulate_fid_grad("strong", "not reduced", acqux, acquy, acqgrad, acquz, acqut, gamma, J, rhoinit, npoints, dwell, noffs, offs, T2_time, nB1, ngrads, tubesize)
-                end
-            # end
-        elseif occursin("simulate sidebands", currentline)
+        if occursin("simulate sidebands", currentline)
             if !bilevel_flag
                 println("FIDs are simulated with weak coupling in the reduced Liouville space for different Js")       # TODO not working yet
-                global maxintens, maxatfreq, maxintensatoffs, maxintensside, maxsideatfreq, maxsideatoffs, maxintenssidesub, maxsideatfreqsub, maxsidesubatoffs, allspectr = @time simulate_sidebands_J(acqux, acquy, acquz, acqut, allJs, nB1, noffs, fB1, npoints, dwell, T2_time, offs, fidspin, pulsespins, offsetspins)
+                global maxintens, maxatfreq, maxintensside, maxsideatfreq, allspectr = @time simulate_sidebands_J(acqux, acquy, acquz, acqut, allJs, nB1, noffs, fB1, npoints, dwell, T2_time, offs, fidspin, pulsespins, offsetspins)
             else
                 println("FIDs are simulated with weak coupling in the reduced Liouville space for different Js")       # TODO not working yet
-                global maxintens, maxatfreq, maxintensside, maxsideatfreq, maxintenssidesub, maxsideatfreqsub, allspectr = @time simulate_sidebands_J_bilevel(nbilevel, acquxm, acquym, acquzm, acqutm, allJs, nB1, noffs, fB1, npoints, dwell, T2_time, offs, fidspin, pulsespins, offsetspins, nspins)
+                global maxintens, maxatfreq, maxintensside, maxsideatfreq, allspectr = @time simulate_sidebands_J_bilevel(nbilevel, acquxm, acquym, acquzm, acqutm, allJs, nB1, noffs, fB1, npoints, dwell, T2_time, offs, fidspin, pulsespins, offsetspins, nspins)
             end
         end
         if occursin("xi", currentline)      # only for acq at the moment
@@ -580,20 +446,6 @@ function simulate(paramfilename, nspins, npoints, nB1, noffs, fB1, offs, sequx, 
             end
             threshold = parse(Float64, split(currentline)[2])
             global xi, bandwidth = determine_xi(threshold, rfav_power, projection, offs)
-        end
-        if occursin("simulate average H", currentline)
-            println("Average Hamiltonian is simulated")
-            global hamx, hamy, hamz, hamdwellx, hamdwelly, hamdwellz, ptgrid, dwelltime, = @time simulate_average_H(sequx, sequy, sequz, sequt, centered_inversion, haminit, thresh, fB1, nB1, noffs, dwell)
-            # global ham2x, ham2y, ham2z, hamdwell2x, hamdwell2y, hamdwell2z, ptgrid, dwelltime, = @time simulate_average_H(sequx2, uy2, uz2, ut2, rfmax2, centered_inversion2, haminit, thresh)
-        elseif occursin("simulate repeated pulse average H", currentline)
-            println("Average Hamiltonian of repeated pulse is simulated")
-            global hamx, hamy, hamz, hamdwellx, hamdwelly, hamdwellz, ptgrid, dwelltime, dtgrid, = @time simulate_rep_average_H(sequx, sequy, sequz, sequt, centered_inversion, haminit, thresh, npoints, dwell, fB1, nB1, noffs)
-            # global ham2x, ham2y, ham2z, hamdwell2x, hamdwell2y, hamdwell2z, ptgrid, dwelltime, dtgrid, = simulate_rep_average_H(sequx2, uy2, uz2, ut2, rfmax2, centered_inversion2, haminit, thresh)
-        end
-        if occursin("sum H", currentline)
-            println("average over whole dwell time is calculated")
-            global sumhamdwellx, sumhamdwelly, sumhamdwellz = sum_ham_over_dw(hamdwellx, hamdwelly, hamdwellz, nB1, noffs)
-            # global sumhamdwell2x, sumhamdwell2y, sumhamdwell2z = sum_ham_over_dw(hamdwell2x, hamdwell2y, hamdwell2z)
         end
         if occursin("Waugh simple", currentline)
             pulsenumber = parse(Int32,split(currentline)[end])
@@ -625,10 +477,6 @@ function simulate(paramfilename, nspins, npoints, nB1, noffs, fB1, offs, sequx, 
         end
 
     end
-
-    # NOT IMPLEMENTED YET
-    # simulate_fid_grad("weak", "not reduced", ux, uy, uz, ut, graduz, gradut, gamma, rhoinit)
-
 
     close(io)
     return 
@@ -670,75 +518,3 @@ function initializeallparams(nspins)
     
     return npoints, nB1, noffs, pdigits, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, sequxm, sequym, sequzm, seqgradm, sequtm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm, J, dwell, T2_time, theta, rfmaxseq, rfmaxacq, rfmaxhom, tpulseseq, tpulseacq, tpulsehom, bwdth, n, k, thresh, dchunk, eps, pulsefilename, pulsetype, supercycle, startmag, offsrange, haminit, centered_inversion, cs, sc, dc, spingroups, pulsespingroup, allJs, fidspingroup, fidspin, pulsespins, offsetspins, ngrads, gradphase, dgrad, gradspins, gradstrength, tubesize, gammaH
 end
-
-
-
-
-# ----------------- OLD FUNCTIONS ------------------
-
-
-# function order_by_spinnumber(spinnumber, nspins, uxold, uyold, uzold, gradold, utold, acquxold, acquyold, acquzold, acqgradold, acqutold, homuxold, homuyold, homuzold, homgradold, homutold)
-    
-#     ux, uy, uz, grad, ut, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut = Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(),Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}(), Vector{Vector{Float64}}()
-
-
-#     for ispin = 1:nspins
-#         if !(ispin in spinnumber)
-#             append!(spinnumber, ispin)
-#             push!(uxold, [])
-#             push!(uyold, [])
-#             push!(uzold, [])
-#             push!(gradold, [])
-#             push!(utold, [])
-#             push!(acquxold, [])
-#             push!(acquyold, [])
-#             push!(acquzold, [])
-#             push!(acqgradold, [])
-#             push!(acqutold, [])
-#             push!(homuxold, [])
-#             push!(homuyold, [])
-#             push!(homuzold, [])
-#             push!(homgradold, [])
-#             push!(homutold, [])
-#         end
-#         currentindex = findfirst(isequal(ispin), spinnumber)
-#         push!(ux, uxold[currentindex])
-#         push!(uy, uyold[currentindex])
-#         push!(uz, uzold[currentindex])
-#         push!(grad, gradold[currentindex])
-#         push!(ut, utold[currentindex])
-#         push!(acqux, acquxold[currentindex])
-#         push!(acquy, acquyold[currentindex])
-#         push!(acquz, acquzold[currentindex])
-#         push!(acqgrad, acqgradold[currentindex])
-#         push!(acqut, acqutold[currentindex])
-#         push!(homux, homuxold[currentindex])
-#         push!(homuy, homuyold[currentindex])
-#         push!(homuz, homuzold[currentindex])
-#         push!(homgrad, homgradold[currentindex])
-#         push!(homut, homutold[currentindex])
-#     end
-
-#     return ux, uy, uz, grad, ut, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut
-# end
-
-
-
-
-
-# "### initializeallresults()
-# types of all necessary variables are defined"
-# function initializeallresults()
-#     nspins::Int32, npoints::Int32, nB1::Int32, noffs::Int32, pdigits::Int32, fidspingroup::Int32 = 0, 0, 0, 0, 0, 0
-#     J::Float64, dwell::Float64, T2_time::Float64, theta::Float64, rfmax::Float64, tpulse::Float64, bwdth::Float64, n::Float64, k::Float64, thresh::Float64, dchunk::Float64, eps::Float64 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-#     pulsefilename::String, pulsetype::String, startmag::String = "", "", ""
-#     offsrange = zeros(Float64, 2)   # TODO StaticArray
-#     haminit = zeros(Float64, 3)
-#     centered_inversion = false
-#     supercycles = String[]
-#     cs, sc, dc, spingroups, pulsespingroup, allJs = Float64[], Float64[], Float64[], Float64[], Float64[], Float64[]
-
-#     # misisng: supercycle, cs, sc, dc, spingroups, pulsespingroup, fidspingroup, allJs
-
-#     return nspins, npoints, nB1, noffs, pdigits, J, dwell, T2_time, theta, rfmax, tpulse, bwdth, n, k, thresh, dchunk, eps, pulsefilename, pulsetype, startmag, offsrange, haminit, centered_inversion, cs, sc, dc, spingroups, pulsespingroup, allJs, fidspingroup
-# end

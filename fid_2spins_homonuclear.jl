@@ -1,6 +1,5 @@
 include("fid_2spins_heteronoclear.jl")
 
-
 "simulation of a spectrum where homonuclear decoupling of the interferogram type is applied\n
 starting with the pulse parameters of an adiabatic pulse, the spectra, fid and projection are simulated\n
 sfid: single fids of each chunk\n
@@ -391,10 +390,6 @@ function simulate_fid_heteroD_homoD(cstrength, acqux, acquy, acquz, acqut, homux
 end
 
 
-
-
-
-
 "get parameters of final pulse, which is repeated until the end of the fid, and which is cut into two pieces at each dwell time\n
 output: acqux, acquy, acquz, acqut, acqdigdwell"
 function get_final_pulse_acq_during_homoD(acqux, acquy, acquz, acqut, dchunk)
@@ -437,8 +432,7 @@ function get_final_pulse_acq_during_homoD(acqux, acquy, acquz, acqut, dchunk)
 end
 
 
-
-"pulse is repeated until it is longer than the acquisition time\n
+"pulse for heteronuclear decoupling is repeated until it is longer than  the duration of one chunk\n
 output: acqux, facquy, facquz, facqut, acqdigdwell"
 function repeat_pulse_during_homoD(acqux, acquy, acquz, acqut, dchunk)
     pulse_duration = sum(acqut)
@@ -452,8 +446,6 @@ function repeat_pulse_during_homoD(acqux, acquy, acquz, acqut, dchunk)
         return acqux, acquy, acquz, acqut
     end
 end
-
-
 
 
 "get fid of one chunk where homonuclear and heteronuclear decoupling is applied \n
