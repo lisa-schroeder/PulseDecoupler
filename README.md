@@ -1,6 +1,8 @@
 # Pulse Decoupler
 
 Master thesis of Lisa Schröder
+Karlsruhe Institute of Technology
+Institute for Biological Interfaces 4 (IBG-4)
 
 ## Applications
 
