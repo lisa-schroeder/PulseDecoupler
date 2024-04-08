@@ -14,8 +14,10 @@ Introduction of figure of merit p to describe the J dependency of the maximum an
 
 ## Instruction
 
-Type of simulation needs to be defined in the input file
+An exemplary input file is given (params.txt)
 
-All parameters are defined in the input file
+Type of simulation needs to be defined in the input file and all parameters must be defined in the input file
 
 run.jl needs to be exectued in order to run the simulations
+
+Further explanation can be found in the appendix of the Thesis
