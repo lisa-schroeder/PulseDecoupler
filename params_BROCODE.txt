@@ -43,8 +43,8 @@ tpulseacq = 0.05 58.2                      # duration of pulse in ms, of pulses 
 
 
 # ------------ USING PULSE FROM BRUKER FILE -------------
-# filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N1_1.bruker
-filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_1.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_2.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_3.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_4.bruker      # tpulse=128ms, rfmax=7500 
+# filename spin 2 = C:/Users/user/BROCODE_N1_1.bruker
+filename spin 2 = C:/Users/user/BROCODE_N4_1.bruker C:/Users/Lisa/Documents/KIT/WS202324/Pulse/BROCODE/BROCODE_N4_2.bruker C:/Users/user/BROCODE_N4_3.bruker C:/Users/user/BROCODE_N4_4.bruker      # tpulse=128ms, rfmax=7500 
 
 
 # --------------------------------------------------------------

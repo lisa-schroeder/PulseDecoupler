@@ -41,7 +41,7 @@ tpulseacq = 0.05 1.5                      # duration of pulse in ms, of pulses d
 
 
 # ------------ USING PULSE FROM BRUKER FILE -------------
-filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/caWURST-2.bruker
+filename spin 2 = C:/Users/user/caWURST-2.bruker
 
 
 # ------------ SUPERCYCLES ------------

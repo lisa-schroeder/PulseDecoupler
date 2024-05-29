@@ -48,8 +48,8 @@ dchunk = 0.5                                 # will be devided by J ---> dchunk 
 
 
 # ------------ USING PULSE FROM BRUKER FILE -------------
-filename spin 1 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_shifted.xyzgt                      # tpulse=10 ms, rfmax=234
-filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_shifted.xyzgt
+filename spin 1 = C:/Users/user/Rsnob_shifted.xyzgt                      # tpulse=10 ms, rfmax=234
+filename spin 2 = C:/Users/user/Rsnob_shifted.xyzgt
 
 
 
