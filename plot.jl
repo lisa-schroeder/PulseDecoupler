@@ -1,7 +1,3 @@
-using Printf
-using Measures
-using LaTeXStrings
-using Dierckx
 
 
 "Fourier Transform of FID\n

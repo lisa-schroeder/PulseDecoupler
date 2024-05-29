@@ -1,5 +1,4 @@
-using QuadGK
-using StatsBase
+
 
 "description of each important variablen is returned as dict. Keywords are the names of the parameters as string\n
 output: dict with params"
@@ -864,8 +863,8 @@ output: maxintens, maxatfreq, maxintensside, maxsideatfreq, maxintenssidesub, ma
 function simulate_sidebands_J(acqux, acquy, acquz, acqut, allJs, nB1, noffs, fB1, npoints, dwell, T2_time, offs, fidspin, pulsespins, offsetspins)
     # instead it could be implemented that the FID for J=0 Hz is calculated directly
 
-    spectr0J = get_spectr_0J_linewidth6Hz()
-    # spectr0J = get_spectr_0J_linewidth1Hz6()
+    # spectr0J = get_spectr_0J_linewidth6Hz()
+    spectr0J = get_spectr_0J_linewidth1Hz6()
 
     rhoinit = [0.0, 0.0, 0.0, 1.0]
     text1 = ""

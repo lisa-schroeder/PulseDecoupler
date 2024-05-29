@@ -1,0 +1,65 @@
+# -------------------------------------------------------------------------------
+#                      DECOUPLING SIMULATION - INPUT FILE
+# -------------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------
+#                      TYPE OF SIMULATION 
+# --------------------------------------------------------------
+
+simulate FID Hetero Decoupling, weak, reduced
+xi 80
+simulate Waugh simple pulse acq of spin 2
+
+
+# --------------------------------------------------------------
+#                     SIMULATION PARAMETERS
+# --------------------------------------------------------------
+
+nspins = 2                                 # number of spins
+fidspin = 1                                # spin of which FID is taken
+offsetspins = 2                            # spins whose offset is varied to get the offset dependent decoupling profile
+pulsespins = 2                             # spins at which pulse is applied, for each has to be given a seperate pulse file
+J = 145                                    # coupling strength between two spins in Hz
+dwell = 0.0002                             # dwell time in s
+T2_time = 0.2
+npoints = 5000                             # number of points of the FID
+nB1 = 11                                    # number of B1 fields for calculation
+theta = 30                                 # +/- theta in percent, for B1 inhomogeneity and for average hamiltonian
+noffs = 31                                 # number of calculated offsets
+offsrange = -10000, 10000                  # offset range, in which offsets are calculated, in Hz
+
+
+
+
+#---------------------------------------------------------------
+#                    SETUP OF PULSE SEQUENCE
+#---------------------------------------------------------------
+
+
+# ------------ PULSE PARAMETERS ------------
+rfmaxacq = 10000 4400                     # maximum of rf-amplitude, in Hz, of pulses during acquisition (heteronuclear decoupling)
+
+
+# ------------ WAUGH CRITERION ------------
+eps = 1.0                           # epsilon used to calculate the slope of lambda, necessary for the simple waugh criterion, in Hz
+
+
+# ------------ CREATE OTHER PULSES ------------
+# implemented pulse for supercycles: GARP, WALTZ4, WALTZ8, WALTZ16, MLEV, DIPSI1, DIPSI2, DIPSI3, SUSAN, STUD, WURST, F1, F2, ..., F10
+pulsetype spin 2 = WALTZ16
+
+
+
+# ------------ SUPERCYCLES ------------
+# implemented supercycles so far: MLEV4, MLEV8, MLEV16, MLEV64, WALTZ4, WALTZ8, WALTZ16, P5, P7, P9
+# first named supercycle is the outer supercycle
+supercycle spin 2 = WALTZ16
+
+
+# --------------------------------------------------------------
+#                    STARTING MAGNETIZATION
+# --------------------------------------------------------------
+
+rhoinit = x                                     # starting magnetization, can be x, y or z
+

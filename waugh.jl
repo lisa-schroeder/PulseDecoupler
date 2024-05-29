@@ -1,6 +1,3 @@
-using QuadGK
-using StatsBase
-# using DoubleFloats
 
 
 "calculate rotation angle of pulse\n

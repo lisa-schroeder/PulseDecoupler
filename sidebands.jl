@@ -1,8 +1,5 @@
 
-using CSV
-using DataFrames
-using StatsBase
-using Printf
+
 
 
 "reading in intensity of sidebands or center peak of the csv file
@@ -12,12 +9,12 @@ output: Js, sidebands"
 function read_in_biggest_sidebands(filename)
     data = DataFrame(CSV.File(filename))
     Js = zeros(size(data)[1])
-    sidebands = zeros(size(data)[1],size(data)[2]-2)
+    sidebands = zeros(size(data)[1],size(data)[2]-1)
 
     for line in 1:size(data)[1]
         @show line
         Js[line] = data[line,1]
-        for row = 1:size(data)[2]-2
+        for row = 1:size(data)[2]-1
             @show row
             sidebands[line,row] = data[line,row+1]
         end
@@ -36,7 +33,7 @@ output: -"
 function plot_fit_sidebands(Js, sidebands, xlimits, ylimits, p0, noffs)
 
     iJ = size(sidebands)[1]
-    scatter(Js, sidebands, linewidth=2, color=palette([:darkblue, :red, :darkblue], noffs), legend=false, xlabel="coupling constant "*L"J_{IS}", dpi=500, ylabel="intensity of largest sideband (%)")
+    scatter(Js, sidebands, linewidth=2, color=palette([:darkblue, :red, :darkblue], noffs), legend=false, xlabel="coupling constant "*L"J_{IS}"*" (Hz)", dpi=500, ylabel="intensity of largest sideband (%)")
 
     @. modelside(x, p) = p[1]*x^2
     for ioffs = 1:noffs
@@ -65,7 +62,7 @@ function plot_fit_maxintens(Js, maxvals, xlimits, ylimits, p0, noffs)
     iJ = size(maxvals)[1]
     @show iJ
 
-    scatter(Js, maxvals, dpi=500, linewidth=2, legend=false,  color=palette([:darkblue, :red, :darkblue], noffs), xlabel="coupling constant "*L"J_{IS}", ylabel="maximum intensity (%)")
+    scatter(Js, maxvals, dpi=500, linewidth=2, legend=false,  color=palette([:darkblue, :red, :darkblue], noffs), xlabel="coupling constant "*L"J_{IS}"*" (Hz)", ylabel="maximum intensity (%)")
 
     @. modelmax(x, p) = 100+p[1]*x^2
     for ioffs = 1:noffs
@@ -97,8 +94,8 @@ function write_maxintensities_to_csv(maxintens, maxintensside, noffs, filename)
         textside = textside * string(allJs[iJ])
         textmax = textmax * string(allJs[iJ])
         for ioffs = 1:noffs
-            textside = textside * string(",", maxintensside[ioffs,iJ]/2.505,)
-            textmax = textmax * string(",", maxintens[ioffs,iJ]/2.505,)
+            textside = textside * string(",", maxintensside[ioffs,iJ]/10,)
+            textmax = textmax * string(",", maxintens[ioffs,iJ]/10,)
         end
         textside = textside * "\n"
         textmax = textmax * "\n"

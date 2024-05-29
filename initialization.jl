@@ -1,4 +1,3 @@
-using StaticArrays
 
 
 "variables are initialized as given in paramfile, simulations defined in paramfile will be performed\\
@@ -9,7 +8,7 @@ function performsimulations(paramfilename)
     @time simulate(paramfilename, nspins, npoints, nB1, noffs, fB1, offs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, sequxm, sequym, sequzm, seqgradm, sequtm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm, nbilevel, J, dwell, T2_time, theta, rfmaxseq, rfmaxacq, rfmaxhom, thresh, dchunk, eps, startmag, haminit, centered_inversion, cs, sc, dc, spingroups, pulsespingroup, allJs, fidspingroup, fidspin, pulsespins, offsetspins, ngrads, gradphase, dgrad, gradspins, gradstrength, tubesize, gammaH, bilevel_flag, iu, ix, iy, iz, ip, im, ia, ib)
     # B1 is calculated from the pulse during heteronuclear decoupling on the second spin
     B1 = fB1 .* maximum(rfmaxacq[2])
-    return nB1, noffs, B1, offs, dwell, npoints, allJs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, sequxm, sequym, sequzm, seqgradm, sequtm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm
+    return nB1, noffs, fB1, B1, offs, dwell, npoints, allJs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, sequxm, sequym, sequzm, seqgradm, sequtm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm
 end
 
 
@@ -451,18 +450,14 @@ function simulate(paramfilename, nspins, npoints, nB1, noffs, fB1, offs, sequx, 
             pulsenumber = parse(Int32,split(currentline)[end])
             if occursin("acq", currentline)
                 println("Simulation of simple Waugh criterion of acq pulse of spin ", pulsenumber)
-                global lambda, phip, phim = @time simulate_waugh_simple(acqux[pulsenumber], acquy[pulsenumber], acquz[pulsenumber], acqut[pulsenumber], eps, noffs, offs)
+                global lambda = @time simulate_waugh_simple(acqux[pulsenumber], acquy[pulsenumber], acquz[pulsenumber], acqut[pulsenumber], eps, noffs, offs)
             elseif occursin("hom", currentline)
                 println("Simulation of simple Waugh criterion of hom pulse of spin ", pulsenumber)
-                global lambda, phip, phim = @time simulate_waugh_simple(homux[pulsenumber], homuy[pulsenumber], homuz[pulsenumber], homut[pulsenumber], eps, noffs, offs)
+                global lambda = @time simulate_waugh_simple(homux[pulsenumber], homuy[pulsenumber], homuz[pulsenumber], homut[pulsenumber], eps, noffs, offs)
             else
                 println("Simulation of simple Waugh criterion of seq pulse of spin ", pulsenumber)
-                global lambda, phip, phim = @time simulate_waugh_simple(sequx[pulsenumber], sequy[pulsenumber], sequz[pulsenumber], sequt[pulsenumber], eps, noffs, offs)
+                global lambda = @time simulate_waugh_simple(sequx[pulsenumber], sequy[pulsenumber], sequz[pulsenumber], sequt[pulsenumber], eps, noffs, offs)
             end
-        end
-        if occursin("Waugh exact", currentline)
-            println("Simulation of exact Waugh criterion")
-            global J1, J2, I1, I2, phip, phim, beffp, beffm, toobig = @time simulate_waugh_exact(true, acqux, acquy, acquz, acqut, noffs, offs, J)
         end
         if occursin("simulate magnetization", currentline)
             pulsenumber = parse(Int32,split(currentline)[end])

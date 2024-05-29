@@ -1,4 +1,3 @@
-using LinearAlgebra
 
 "generates basis operators dependent on the number of spins\n
 output: iu,ix,iy,iz,ip,im,ia,ib"

@@ -1,0 +1,60 @@
+# -------------------------------------------------------------------------------
+#                      DECOUPLING SIMULATION - INPUT FILE
+# -------------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------
+#                      TYPE OF SIMULATION 
+# --------------------------------------------------------------
+
+
+simulate FID Homo Decoupling, strong
+simulate magnetization pulse hom of spin 1
+
+
+# --------------------------------------------------------------
+#                     SIMULATION PARAMETERS
+# --------------------------------------------------------------
+
+nspins = 2                                 # number of spins
+fidspin = 1                                # spin of which FID is taken
+offsetspins = 2                            # spins whose offset is varied to get the offset dependent decoupling profile
+pulsespins = 1 2                             # spins at which pulse is applied, for each has to be given a seperate pulse file
+J = 10                                    # coupling strength between two spins in Hz
+dwell = 0.0002                             # dwell time in s
+T2_time = 0.2
+npoints = 5000                             # number of points of the FID
+nB1 = 1                                    # number of B1 fields for calculation
+theta = 30                                 # +/- theta in percent, for B1 inhomogeneity and for average hamiltonian
+noffs = 9                                 # number of calculated offsets
+offsrange = -3000, 3000                  # offset range, in which offsets are calculated, in Hz
+
+
+
+
+#---------------------------------------------------------------
+#                    SETUP OF PULSE SEQUENCE
+#---------------------------------------------------------------
+
+
+# ------------ PULSE PARAMETERS ------------
+rfmaxhom = 234 234                         # maximum of rf-amplitude, in Hz, of pulses for homonuclear decoupling
+tpulsehom = 10 10                          # duration of pulse in ms, of pulses for homonuclear decoupling
+
+
+
+# ------------ HOMONUCLEAR DECOUPLING ------------
+dchunk = 0.5                                 # will be devided by J ---> dchunk = 0.5 equals dchunk = 1/(2*J)
+
+
+# ------------ USING PULSE FROM BRUKER FILE -------------
+filename spin 1 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_shifted.xyzgt                      # tpulse=10 ms, rfmax=234
+filename spin 2 = C:/Users/Lisa/Documents/KIT/WS202324/Pulse/Rsnob_shifted.xyzgt
+
+
+
+# --------------------------------------------------------------
+#                    STARTING MAGNETIZATION
+# --------------------------------------------------------------
+
+rhoinit = x                                     # starting magnetization, can be x, y or z

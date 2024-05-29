@@ -1,4 +1,3 @@
-using Test
 
 "read in ux, uy, uz and ut of xyzt file format\n
 output: ux, uy, uz, ut"
