@@ -47,7 +47,7 @@ include("write_wave.jl")
 #                                                      SETUP OF SIMULATION PARAMETERS AND SIMULATIONS
 #------------------------------------------------------------------------------------------------------------------------------------------------
 
-nB1, noffs, fB1, B1, offs, dwell, npoints, allJs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, uxm, uym, uzm, gradm, utm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm = performsimulations("params_test.txt")
+nB1, noffs, fB1, B1, offs, dwell, npoints, allJs, sequx, sequy, sequz, seqgrad, sequt, acqux, acquy, acquz, acqgrad, acqut, homux, homuy, homuz, homgrad, homut, uxm, uym, uzm, gradm, utm, acquxm, acquym, acquzm, acqgradm, acqutm, homuxm, homuym, homuzm, homgradm, homutm = performsimulations("params_cw.txt")
 
 
 
@@ -63,16 +63,16 @@ nB1, noffs, fB1, B1, offs, dwell, npoints, allJs, sequx, sequy, sequz, seqgrad, 
 # display(contour(offs./1000,fftshift(fftfreq(npoints,1/dwell)), spectr[ceil(Int32,nB1/2),:,:]'./2.505, color=cgrad([:darkblue, :blue, :white, :red, :darkred], [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 1], categorical = true), clims=(-2, 2), ylims=(-500,500), xlabel=L"\nu_I"*" (kHz)", ylabel=L"\nu_S"*" (Hz)", dpi=500))
 
 # Linewidth 1.6 Hz
-# display(plot(offs./1000, projection[ceil(Int32,nB1/2),:,:]./10, legend=false, xlabel=L"\nu_I"*" (kHz)", ylabel="projection intensity (%)", linewidth=2, ylims=(0,100), dpi=500))
+display(plot(offs./1000, projection[ceil(Int32,nB1/2),:,:]./10, legend=false, xlabel=L"\nu_I"*" (kHz)", ylabel="projection intensity (%)", linewidth=2, ylims=(0,100), dpi=500))
 # savefig("filename.svg")
-display(contour(offs./1000,fftshift(fftfreq(npoints,1/dwell)), spectr[ceil(Int32,nB1/2),:,:]'./10, color=cgrad([:darkblue, :blue, :white, :red, :darkred], [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 1], categorical = true), clims=(-2, 2), ylims=(-500,500), xlabel=L"\nu_I"*" (kHz)", ylabel=L"\nu_S"*" (Hz)", dpi=500))
+display(contour(offs./1000,fftshift(fftfreq(npoints,1/dwell)), spectr[ceil(Int32,nB1/2),:,:]'./10, color=cgrad([:darkblue, :blue, :white, :red, :darkred], [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99, 1], categorical = true), clims=(-2, 2), ylims=(-100,100), xlabel=L"\nu_I"*" (kHz)", ylabel=L"\nu_S"*" (Hz)", dpi=500))
 
 # display(contour(offs./1000, fB1, projection./10, xlabel=L"\nu_I"*" (kHz)", clims=(0, 100), ylabel=L"B_{1,rel}", color=palette([:darkblue, :white, :darkred], 21), fill=true, linewidth=0, dpi=500))
 # display(contour(offs./1000,fftshift(fftfreq(npoints,1/dwell)), spectr[ceil(Int32,nB1/2),:,:]', ylims=(-20,20), xlabel=L"\nu_I"*" (kHz)", ylabel=L"\nu_S"*" (Hz)", dpi=500))
 
 # display(contour(offs./1000, fB1, Mz, label="Mz", xlabel=L"\nu_I"*" (kHz)", clims=(-1,1), ylabel=L"B_{1,rel}", color=cgrad([:navyblue, :white, :darkred], [0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1], categorical = true), fill=true, linewidth=0, dpi=500))
 # display(plot(offs./1000, abs.(lambda), legend=false, ylims=(0,0.5), linewidth=2, ylabel=L"\lambda", xlabel=L"\nu_I"*" (kHz)"))# lambda (Waugh simple)
-display(plot(offs./1000, [Mx[1,:] My[1,:] Mz[1,:]], label=["Mx" "My" "Mz"], linewidth=2, xlabel="offset (kHz)", ylabel="Magnetization"))
+# display(plot(offs./1000, [Mx[1,:] My[1,:] Mz[1,:]], label=["Mx" "My" "Mz"], linewidth=2, xlabel="offset (kHz)", ylabel="Magnetization"))
 
 
 #------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,27 @@
+##TITLE= CW
+##JCAMP-DX= 
+##DATA TYPE= 
+##ORIGIN= 
+##OWNER= 
+##DATE= 
+##TIME= 
+##$SHAPE_PARAMETERS= Type: CW: Tp=, Bandwidth=, gB1max=, B1 tolerance +/-10%
+##MINX= 
+##MAXX= 
+##MINY= 
+##MAXY= 
+##$SHAPE_EXMODE= 
+##$SHAPE_TOTROT= 
+##$SHAPE_TYPE= 
+##$SHAPE_USER_DEF= 
+##$SHAPE_REPHFAC= 
+##$SHAPE_BWFAC= 
+##$SHAPE_BWFAC50= 
+##$SHAPE_INTEGFAC= 
+##$SHAPE_MODE= 
+##NPOINTS= 3
+##XYPOINTS= (XY..XY)
+100.0, 0.0
+100.0, 0.0
+100.0, 0.0
+##END=
