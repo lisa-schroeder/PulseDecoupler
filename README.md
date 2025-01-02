@@ -8,9 +8,13 @@ Institute for Biological Interfaces 4 (IBG-4)
 
 ## Applications
 
-Simulation of homonuclear and heteronuclear decoupling sequences with respect to variuos parameters such as coupling constant, B1-inhomogeneity, linewidth,...
+Simulation of homonuclear and heteronuclear decoupling sequences with respect to variuos parameters such as coupling constant, B1-inhomogeneity or linewidth.
 
 Introduction of figure of merit p to describe the J dependency of the maximum and sideband intensity
+
+The figure of merit Xi can be evaluated for all pulse sequences
+
+Common pulse sequences such as MLEV, WALTZ and adiabatic pulses are implemented
 
 ## Instructions
 
