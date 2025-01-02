@@ -12,12 +12,12 @@ Simulation of homonuclear and heteronuclear decoupling sequences with respect to
 
 Introduction of figure of merit p to describe the J dependency of the maximum and sideband intensity
 
-## Instruction
+## Instructions
 
 An exemplary input file is given (params.txt)
 
-Type of simulation needs to be defined in the input file and all parameters must be defined in the input file
+Type of simulation and all parameters need to be defined in the input file
 
 run.jl needs to be exectued in order to run the simulations
 
-Further explanation can be found in the appendix of the Thesis
+Detailed instructions can be found in the appendix of the Master's Thesis
